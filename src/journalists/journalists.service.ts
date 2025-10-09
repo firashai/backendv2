@@ -22,13 +22,20 @@ export class JournalistsService {
   }
 
   async findAll(searchDto?: SearchJournalistDto): Promise<Journalist[]> {
-    if (searchDto) {
+    if (searchDto && (searchDto.location || searchDto.mediaWorkType || searchDto.analystSpecialty || searchDto.skills || searchDto.languages)) {
       return this.search(searchDto);
     }
     
-    return this.journalistRepository.find({
-      relations: ['user', 'mediaContent'],
-    });
+    const queryBuilder = this.journalistRepository.createQueryBuilder('journalist')
+      .leftJoinAndSelect('journalist.user', 'user')
+      .leftJoinAndSelect('journalist.mediaContent', 'mediaContent')
+      .orderBy('journalist.createdAt', 'DESC');
+
+    if (searchDto?.limit) {
+      queryBuilder.limit(searchDto.limit);
+    }
+
+    return queryBuilder.getMany();
   }
 
   async findOne(id: number): Promise<Journalist> {

@@ -7,6 +7,7 @@ import { JobApplication } from './entities/job-application.entity';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { ApplyForJobDto } from './dto/apply-for-job.dto';
+import { SearchJobDto } from './dto/search-job.dto';
 import { JobStatus, JobType } from './entities/job.entity';
 import { ApplicationStatus } from './entities/job-application.entity';
 import { User } from '../users/entities/user.entity';
@@ -28,12 +29,17 @@ export class JobsService {
     return this.jobRepository.save(job);
   }
 
-  async findAll(query?: any): Promise<Job[]> {
-    return this.jobRepository.find({
-      relations: ['company'],
-      where: { status: JobStatus.PUBLISHED },
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(searchDto?: SearchJobDto): Promise<Job[]> {
+    const queryBuilder = this.jobRepository.createQueryBuilder('job')
+      .leftJoinAndSelect('job.company', 'company')
+      .where('job.status = :status', { status: JobStatus.PUBLISHED })
+      .orderBy('job.createdAt', 'DESC');
+
+    if (searchDto?.limit) {
+      queryBuilder.limit(searchDto.limit);
+    }
+
+    return queryBuilder.getMany();
   }
 
   async findOne(id: number): Promise<Job> {

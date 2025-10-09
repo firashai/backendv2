@@ -3,6 +3,7 @@ import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { ApplyForJobDto } from './dto/apply-for-job.dto';
+import { SearchJobDto } from './dto/search-job.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('jobs')
@@ -16,8 +17,8 @@ export class JobsController {
   }
 
   @Get()
-  findAll(@Query() query: any) {
-    return this.jobsService.findAll(query);
+  findAll(@Query() searchDto: SearchJobDto) {
+    return this.jobsService.findAll(searchDto);
   }
 
   @Get('company/:companyId')

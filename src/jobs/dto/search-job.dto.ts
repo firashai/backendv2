@@ -1,27 +1,23 @@
 import { IsOptional, IsString, IsArray, IsBoolean, IsEnum, IsNumber } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { MediaWorkType, AnalystSpecialty } from '../entities/journalist.entity';
+import { JobType } from '../entities/job.entity';
 
-export class SearchJournalistDto {
+export class SearchJobDto {
   @IsOptional()
   @IsString()
   location?: string;
 
   @IsOptional()
-  @IsEnum(MediaWorkType)
-  mediaWorkType?: MediaWorkType;
+  @IsEnum(JobType)
+  jobType?: JobType;
 
   @IsOptional()
-  @IsEnum(AnalystSpecialty)
-  analystSpecialty?: AnalystSpecialty;
+  @IsString()
+  mediaWorkType?: string;
 
   @IsOptional()
-  @IsBoolean()
-  hasCamera?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  canTravel?: boolean;
+  @IsString()
+  analystSpecialty?: string;
 
   @IsOptional()
   @IsArray()
