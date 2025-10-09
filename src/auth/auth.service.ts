@@ -86,7 +86,7 @@ export class AuthService {
       status: UserStatus.PENDING,
       firstName: journalistData.name,
       phoneNumber: journalistData.phoneNumber,
-      country: journalistData.country,
+      countryId: journalistData.countryId,
       city: journalistData.cityOfResidence,
     });
 
@@ -141,7 +141,7 @@ export class AuthService {
       status: UserStatus.PENDING,
       firstName: companyData.name,
       phoneNumber: companyData.phoneNumber,
-      country: companyData.country,
+      countryId: companyData.countryId,
       city: companyData.city,
     });
 

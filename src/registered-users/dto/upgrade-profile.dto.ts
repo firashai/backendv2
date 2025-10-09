@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsObject, IsNumber } from 'class-validator';
 
 export enum UpgradeType {
   JOURNALIST = 'journalist',
@@ -23,8 +23,8 @@ export class UpgradeProfileDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  country?: string;
+  @IsNumber()
+  countryId?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()

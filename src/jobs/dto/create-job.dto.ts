@@ -1,7 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsArray, IsEnum, IsDate, IsBoolean, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { JobType, ExperienceLevel } from '../entities/job.entity';
-import { MediaWorkType, AnalystSpecialty } from '../../journalists/entities/journalist.entity';
 
 class RequirementsDto {
   @IsBoolean()
@@ -41,33 +40,12 @@ export class CreateJobDto {
   @IsEnum(JobType)
   jobType: JobType;
 
-  @IsEnum(MediaWorkType)
-  mediaWorkType: MediaWorkType;
-
-  @IsOptional()
-  @IsEnum(AnalystSpecialty)
-  analystSpecialty?: AnalystSpecialty;
+  // Removed mediaWorkType and analystSpecialty - now handled by junction tables
 
   @IsEnum(ExperienceLevel)
   experienceLevel: ExperienceLevel;
 
-  @IsArray()
-  @IsString({ each: true })
-  requiredSkills: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  preferredSkills?: string[];
-
-  @IsArray()
-  @IsString({ each: true })
-  requiredLanguages: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  preferredLanguages?: string[];
+  // Removed requiredSkills, preferredSkills, requiredLanguages, preferredLanguages - now handled by junction tables
 
   @IsOptional()
   @IsNumber()
@@ -99,11 +77,5 @@ export class CreateJobDto {
   @IsString()
   contactPhone?: string;
 
-  @IsOptional()
-  @IsArray()
-  locations?: {
-    country: string;
-    city: string;
-    address: string;
-  }[];
+  // Removed locations - now handled by junction tables
 }

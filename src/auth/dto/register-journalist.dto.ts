@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, IsDateString, IsBoolean, IsOptional, IsEnum, IsArray } from 'class-validator';
-import { MediaWorkType, AnalystSpecialty, SocialMediaPlatform } from '../../journalists/entities/journalist.entity';
+import { IsEmail, IsString, MinLength, IsDateString, IsBoolean, IsOptional, IsEnum, IsArray, IsNumber } from 'class-validator';
+import { SocialMediaPlatform } from '../../journalists/entities/journalist.entity';
 
 export class RegisterJournalistDto {
   @ApiProperty({ example: 'john.doe@example.com' })
@@ -16,9 +16,9 @@ export class RegisterJournalistDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'United States' })
-  @IsString()
-  country: string;
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  countryId: number;
 
   @ApiProperty({ example: 'New York' })
   @IsString()
@@ -58,14 +58,7 @@ export class RegisterJournalistDto {
   @IsBoolean()
   canTravel: boolean;
 
-  @ApiProperty({ enum: MediaWorkType, example: MediaWorkType.VIDEO_PRODUCTION })
-  @IsEnum(MediaWorkType)
-  mediaWorkType: MediaWorkType;
-
-  @ApiProperty({ enum: AnalystSpecialty, example: AnalystSpecialty.MIDDLE_EASTERN_AFFAIRS, required: false })
-  @IsOptional()
-  @IsEnum(AnalystSpecialty)
-  analystSpecialty?: AnalystSpecialty;
+  // Removed mediaWorkType and analystSpecialty - now handled by junction tables
 
   @ApiProperty({ 
     example: [

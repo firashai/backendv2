@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, IsEnum, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsEnum, IsOptional, IsNumber } from 'class-validator';
 import { UserRole, UserStatus } from '../entities/user.entity';
 
 export class CreateUserDto {
@@ -36,10 +36,10 @@ export class CreateUserDto {
   @IsString()
   phoneNumber?: string;
 
-  @ApiProperty({ example: 'United States', required: false })
+  @ApiProperty({ example: 1, required: false })
   @IsOptional()
-  @IsString()
-  country?: string;
+  @IsNumber()
+  countryId?: number;
 
   @ApiProperty({ example: 'New York', required: false })
   @IsOptional()

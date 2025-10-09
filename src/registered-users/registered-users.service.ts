@@ -46,7 +46,7 @@ export class RegisteredUsersService {
       firstName: profileData.firstName,
       lastName: profileData.lastName,
       phoneNumber: profileData.phoneNumber,
-      country: profileData.country,
+      countryId: profileData.countryId,
       city: profileData.city,
     });
 
@@ -121,14 +121,8 @@ export class RegisteredUsersService {
       // Create journalist profile
       const journalist = this.journalistRepository.create({
         bio: profileData.bio,
-        skills: profileData.specialization ? [profileData.specialization] : [],
-        languages: profileData.languages ? [profileData.languages] : [],
-        portfolio: profileData.portfolio ? [{
-          title: 'Portfolio',
-          description: 'User portfolio',
-          url: profileData.portfolio,
-          type: 'website'
-        }] : [],
+        // Note: skills, languages, and other fields are now handled by junction tables
+        // These will need to be set up separately after the journalist is created
         socialMediaAccounts: profileData.socialMedia ? Object.entries(profileData.socialMedia)
           .filter(([key, value]) => value)
           .map(([platform, url]) => ({
@@ -161,10 +155,8 @@ export class RegisteredUsersService {
         name: profileData.companyName || `${user.firstName} ${user.lastName}`,
         description: profileData.description || profileData.bio,
         website: profileData.website,
-        industry: profileData.industry ? [profileData.industry] : [],
-        companySize: profileData.companySize ? {
-          employees: parseInt(profileData.companySize.split('-')[0]) || 0
-        } : null,
+        // Note: industry, companySize, and other fields are now handled by junction tables
+        // These will need to be set up separately after the company is created
         socialMediaAccounts: profileData.socialMedia ? Object.entries(profileData.socialMedia)
           .filter(([key, value]) => value)
           .map(([platform, url]) => ({

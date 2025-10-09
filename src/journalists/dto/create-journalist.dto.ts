@@ -1,5 +1,5 @@
-import { IsString, IsEmail, IsOptional, IsArray, IsDate, IsBoolean, IsEnum } from 'class-validator';
-import { MediaWorkType, AnalystSpecialty, SocialMediaPlatform } from '../entities/journalist.entity';
+import { IsString, IsEmail, IsOptional, IsArray, IsDate, IsBoolean, IsEnum, IsNumber } from 'class-validator';
+import { SocialMediaPlatform } from '../entities/journalist.entity';
 
 class SocialMediaDto {
   @IsOptional()
@@ -29,8 +29,8 @@ export class CreateJournalistDto {
   @IsString()
   password: string;
 
-  @IsString()
-  country: string;
+  @IsNumber()
+  countryId: number;
 
   @IsString()
   cityOfResidence: string;
@@ -44,26 +44,13 @@ export class CreateJournalistDto {
   @IsDate()
   mediaWorkStartDate: Date;
 
-  @IsEnum(MediaWorkType)
-  mediaWorkType: MediaWorkType;
-
-  @IsOptional()
-  @IsEnum(AnalystSpecialty)
-  analystSpecialty?: AnalystSpecialty;
+  // Removed mediaWorkType and analystSpecialty - now handled by junction tables
 
   @IsOptional()
   @IsString()
   bio?: string;
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  skills?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  languages?: string[];
+  // Removed skills and languages - now handled by junction tables
 
   @IsOptional()
   @IsArray()

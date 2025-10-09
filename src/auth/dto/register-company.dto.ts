@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, IsOptional, IsArray, IsUrl } from 'class-validator';
-import { MediaWorkType, AnalystSpecialty } from '../../journalists/entities/journalist.entity';
+import { IsEmail, IsString, MinLength, IsOptional, IsArray, IsUrl, IsNumber } from 'class-validator';
 
 export class RegisterCompanyDto {
   @ApiProperty({ example: 'company@example.com' })
@@ -16,9 +15,9 @@ export class RegisterCompanyDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'United States' })
-  @IsString()
-  country: string;
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  countryId: number;
 
   @ApiProperty({ example: 'New York' })
   @IsString()
@@ -33,18 +32,5 @@ export class RegisterCompanyDto {
   @IsUrl()
   website?: string;
 
-  @ApiProperty({ 
-    example: [
-      { serviceType: MediaWorkType.VIDEO_PRODUCTION },
-      { serviceType: MediaWorkType.PHOTO_JOURNALISM }
-    ],
-    required: false 
-  })
-  @IsOptional()
-  @IsArray()
-  requiredServices?: {
-    serviceType: MediaWorkType;
-    analystSpecialty?: AnalystSpecialty;
-    description?: string;
-  }[];
+  // Removed requiredServices - now handled by junction tables
 }

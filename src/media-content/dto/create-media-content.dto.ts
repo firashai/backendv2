@@ -62,9 +62,7 @@ export class CreateMediaContentDto {
   @IsString({ each: true })
   categories?: string[];
 
-  @IsOptional()
-  @IsString()
-  location?: string;
+  // Removed location - now handled by junction tables
 
   @IsOptional()
   @IsString()

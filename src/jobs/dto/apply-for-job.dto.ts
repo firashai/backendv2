@@ -45,13 +45,7 @@ export class ApplyForJobDto {
   @IsString()
   references?: string;
 
-  @IsOptional()
-  @IsString()
-  skills?: string;
-
-  @IsOptional()
-  @IsString()
-  languages?: string;
+  // Removed skills and languages - now handled by junction tables
 
   @IsOptional()
   @IsString()
