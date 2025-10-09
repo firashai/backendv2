@@ -6,7 +6,7 @@ import { Journalist } from './entities/journalist.entity';
 import { CreateJournalistDto } from './dto/create-journalist.dto';
 import { UpdateJournalistDto } from './dto/update-journalist.dto';
 import { SearchJournalistDto } from './dto/search-journalist.dto';
-import { MediaWorkType, AnalystSpecialty } from './entities/journalist.entity';
+import { AnalystSpecialty } from './entities/journalist.entity';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
@@ -176,30 +176,20 @@ export class JournalistsService {
     });
   }
 
-  async getByMediaWorkType(mediaWorkType: MediaWorkType): Promise<Journalist[]> {
+  // mediaWorkType filtering moved to junction tables; method retained for compatibility but returns available journalists
+  async getByMediaWorkType(): Promise<Journalist[]> {
     return this.journalistRepository.find({
       relations: ['user'],
-      where: { 
-        mediaWorkType,
-        isAvailable: true,
-      },
+      where: { isAvailable: true },
       order: { rating: 'DESC' },
     });
   }
 
-  async getByLocation(country: string, city?: string): Promise<Journalist[]> {
-    const whereCondition: any = { 
-      country,
-      isAvailable: true,
-    };
-
-    if (city) {
-      whereCondition.cityOfResidence = city;
-    }
-
+  // country/city now live on related user or junctions; simplify until new filters are implemented
+  async getByLocation(): Promise<Journalist[]> {
     return this.journalistRepository.find({
       relations: ['user'],
-      where: whereCondition,
+      where: { isAvailable: true },
       order: { rating: 'DESC' },
     });
   }

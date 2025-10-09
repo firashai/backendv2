@@ -10,6 +10,7 @@ import { ApplyForJobDto } from './dto/apply-for-job.dto';
 import { JobStatus, JobType } from './entities/job.entity';
 import { ApplicationStatus } from './entities/job-application.entity';
 import { User } from '../users/entities/user.entity';
+import { Journalist } from '../journalists/entities/journalist.entity';
 
 @Injectable()
 export class JobsService {
@@ -18,6 +19,8 @@ export class JobsService {
     private readonly jobRepository: Repository<Job>,
     @InjectRepository(JobApplication)
     private readonly jobApplicationRepository: Repository<JobApplication>,
+    @InjectRepository(Journalist)
+    private readonly journalistRepository: Repository<Journalist>,
   ) {}
 
   async create(createJobDto: CreateJobDto, user: User): Promise<Job> {
@@ -78,7 +81,7 @@ export class JobsService {
   }
 
   async applyForJob(jobId: number, applyDto: ApplyForJobDto, user: User): Promise<JobApplication> {
-    const { coverLetter, resumeUrl, resumeFilename, resumeSize, portfolio, samples, proposedRate, availableStartDate, availability, answers, references, skills, languages, equipment, experience, education, notes } = applyDto;
+    const { coverLetter, resumeUrl, resumeFilename, resumeSize, portfolio, samples, proposedRate, availableStartDate, availability, answers, references, equipment, experience, education, notes } = applyDto;
 
     const job = await this.findOne(jobId);
     
@@ -86,9 +89,18 @@ export class JobsService {
       throw new BadRequestException('Job is not available for applications');
     }
 
+    // Resolve journalist by current user
+    const journalist = await this.journalistRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    if (!journalist) {
+      throw new BadRequestException('Only journalists can apply for jobs');
+    }
+
     // Check if already applied
     const existingApplication = await this.jobApplicationRepository.findOne({
-      where: { job: { id: jobId }, journalist: { user: { id: user.id } } },
+      where: { job: { id: jobId }, journalist: { id: journalist.id } },
     });
 
     if (existingApplication) {
@@ -97,7 +109,7 @@ export class JobsService {
 
     const application = this.jobApplicationRepository.create({
       job,
-      journalist: { user: { id: user.id } },
+      journalist,
       company: job.company,
       coverLetter,
       resumeUrl,
@@ -110,8 +122,6 @@ export class JobsService {
       availability,
       answers,
       references,
-      skills,
-      languages,
       equipment,
       experience,
       education,
