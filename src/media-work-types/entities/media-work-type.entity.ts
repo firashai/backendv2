@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { JournalistMediaWorkType } from '../../journalists/entities/journalist-media-work-type.entity';
 import { JobMediaWorkType } from '../../jobs/entities/job-media-work-type.entity';
+import { JobApplication } from '../../jobs/entities/job-application.entity';
 
 @Entity('media_work_types')
 export class MediaWorkType {
@@ -28,5 +29,8 @@ export class MediaWorkType {
 
   @OneToMany(() => JobMediaWorkType, jobMediaWorkType => jobMediaWorkType.mediaWorkType)
   jobMediaWorkTypes: JobMediaWorkType[];
+
+  @OneToMany(() => JobApplication, jobApplication => jobApplication.mediaWorkType)
+  jobApplications: JobApplication[];
 }
 

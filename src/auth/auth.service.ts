@@ -264,7 +264,7 @@ export class AuthService {
       firstName: userData.firstName,
       lastName: userData.lastName,
       phoneNumber: userData.phoneNumber,
-      country: userData.country,
+      countryId: userData.countryId,
       city: userData.city,
     });
 

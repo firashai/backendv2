@@ -167,14 +167,9 @@ export class AdminService {
     }
 
     // Update journalist fields
-    if (updateData.mediaWorkType !== undefined) {
-      journalist.mediaWorkType = updateData.mediaWorkType;
-    }
+    // Note: mediaWorkType, analystSpecialty now handled by junction tables
     if (updateData.experienceLevel !== undefined) {
       journalist.experienceLevel = updateData.experienceLevel;
-    }
-    if (updateData.analystSpecialty !== undefined) {
-      journalist.analystSpecialty = updateData.analystSpecialty;
     }
     if (updateData.hasCamera !== undefined) {
       journalist.hasCamera = updateData.hasCamera;
@@ -212,12 +207,7 @@ export class AdminService {
     if (updateData.completedProjects !== undefined) {
       journalist.completedProjects = updateData.completedProjects;
     }
-    if (updateData.skills !== undefined) {
-      journalist.skills = updateData.skills;
-    }
-    if (updateData.languages !== undefined) {
-      journalist.languages = updateData.languages;
-    }
+    // Note: skills, languages now handled by junction tables
     if (updateData.certifications !== undefined) {
       journalist.certifications = updateData.certifications;
     }
@@ -294,12 +284,7 @@ async updateCompany(companyId: number, updateData: any, adminId: number) {
   if (updateData.specializations !== undefined) {
     company.specializations = updateData.specializations;
   }
-  if (updateData.languages !== undefined) {
-    company.languages = updateData.languages;
-  }
-  if (updateData.locations !== undefined) {
-    company.locations = updateData.locations;
-  }
+  // Note: languages, locations now handled by junction tables
   if (updateData.socialMediaAccounts !== undefined) {
     company.socialMediaAccounts = updateData.socialMediaAccounts;
   }
@@ -379,29 +364,9 @@ async updateJob(jobId: number, updateData: any, adminId: number) {
   if (updateData.status !== undefined) {
     job.status = updateData.status;
   }
-  if (updateData.mediaWorkType !== undefined) {
-    job.mediaWorkType = updateData.mediaWorkType;
-  }
-  if (updateData.analystSpecialty !== undefined) {
-    job.analystSpecialty = updateData.analystSpecialty;
-  }
+  // Note: mediaWorkType, analystSpecialty, skills, languages, locations now handled by junction tables
   if (updateData.experienceLevel !== undefined) {
     job.experienceLevel = updateData.experienceLevel;
-  }
-  if (updateData.requiredSkills !== undefined) {
-    job.requiredSkills = updateData.requiredSkills;
-  }
-  if (updateData.preferredSkills !== undefined) {
-    job.preferredSkills = updateData.preferredSkills;
-  }
-  if (updateData.requiredLanguages !== undefined) {
-    job.requiredLanguages = updateData.requiredLanguages;
-  }
-  if (updateData.preferredLanguages !== undefined) {
-    job.preferredLanguages = updateData.preferredLanguages;
-  }
-  if (updateData.locations !== undefined) {
-    job.locations = updateData.locations;
   }
   if (updateData.salary !== undefined) {
     job.salary = updateData.salary;
@@ -496,9 +461,7 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
   if (updateData.categories !== undefined) {
     media.categories = updateData.categories;
   }
-  if (updateData.location !== undefined) {
-    media.location = updateData.location;
-  }
+  // Note: location now handled by junction tables
   if (updateData.recordedDate !== undefined) {
     media.recordedDate = updateData.recordedDate;
   }
