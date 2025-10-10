@@ -158,7 +158,11 @@ export class JournalistsService {
     }
 
     if (skills && skills.length > 0) {
-      queryBuilder.andWhere('JSON_CONTAINS(journalist.skills, :skills)', { skills: JSON.stringify(skills) });
+      // legacy JSON field match: any of the provided skills
+      queryBuilder.andWhere(
+        skills.map((_, idx) => `JSON_CONTAINS(journalist.skills, :skill${idx})`).join(' OR '),
+        Object.fromEntries(skills.map((s, idx) => [`skill${idx}`, JSON.stringify([s])] as const))
+      );
     }
 
     if (languages && languages.length > 0) {
