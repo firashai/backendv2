@@ -121,6 +121,7 @@ export class JournalistsService {
       analystSpecialty,
       hasCamera,
       canTravel,
+      skill,
       skills,
       languages,
       limit = 20,
@@ -157,11 +158,13 @@ export class JournalistsService {
       queryBuilder.andWhere('journalist.canTravel = :canTravel', { canTravel });
     }
 
-    if (skills && skills.length > 0) {
+    // Handle both single skill and skills array
+    const skillsToSearch = skill ? [skill] : (skills || []);
+    if (skillsToSearch.length > 0) {
       // legacy JSON field match: any of the provided skills
       queryBuilder.andWhere(
-        skills.map((_, idx) => `JSON_CONTAINS(journalist.skills, :skill${idx})`).join(' OR '),
-        Object.fromEntries(skills.map((s, idx) => [`skill${idx}`, JSON.stringify([s])] as const))
+        skillsToSearch.map((_, idx) => `JSON_CONTAINS(journalist.skills, :skill${idx})`).join(' OR '),
+        Object.fromEntries(skillsToSearch.map((s, idx) => [`skill${idx}`, JSON.stringify([s])] as const))
       );
     }
 

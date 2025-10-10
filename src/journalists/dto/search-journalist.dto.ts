@@ -24,6 +24,10 @@ export class SearchJournalistDto {
   canTravel?: boolean;
 
   @IsOptional()
+  @IsString()
+  skill?: string;
+
+  @IsOptional()
   @Transform(({ value }) => {
     if (Array.isArray(value)) return value;
     if (typeof value === 'string') {
