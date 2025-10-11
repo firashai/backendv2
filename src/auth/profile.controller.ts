@@ -7,6 +7,8 @@ import { User } from '../users/entities/user.entity';
 import { Journalist } from '../journalists/entities/journalist.entity';
 import { Company } from '../companies/entities/company.entity';
 import { RegisteredUser } from '../registered-users/entities/registered-user.entity';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @ApiTags('Profile Management')
 @Controller('auth/profile')
@@ -14,6 +16,44 @@ import { RegisteredUser } from '../registered-users/entities/registered-user.ent
 @ApiBearerAuth()
 export class ProfileController {
   constructor(private readonly authService: AuthService) {}
+
+  // File upload configuration
+  private static getFileUploadConfig(uploadPath: string = 'uploads') {
+    return {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          let uploadsDir = uploadPath;
+          const fs = require('fs');
+          const path = require('path');
+          // If the path is not absolute, make it relative to process.cwd()
+          if (!path.isAbsolute(uploadPath)) {
+            uploadsDir = path.join(process.cwd(), uploadPath);
+          }
+  
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+  
+          cb(null, uploadsDir);
+        },
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const extension = extname(file.originalname);
+          cb(null, `${file.fieldname}-${uniqueSuffix}${extension}`);
+        }
+      }),
+      fileFilter: (req, file, cb) => {
+        if (file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
+          cb(null, true);
+        } else {
+          cb(new Error('Only image files are allowed!'), false);
+        }
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+      }
+    };
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get current user profile' })
@@ -30,7 +70,7 @@ export class ProfileController {
   }
 
   @Post('picture')
-  @UseInterceptors(FileInterceptor('profilePicture'))
+  @UseInterceptors(FileInterceptor('profilePicture', ProfileController.getFileUploadConfig('uploads/profile-pictures')))
   @ApiOperation({ summary: 'Upload profile picture' })
   @ApiResponse({ status: 200, description: 'Profile picture uploaded successfully' })
   async uploadProfilePicture(@Request() req, @UploadedFile() file: Express.Multer.File) {
@@ -38,7 +78,7 @@ export class ProfileController {
   }
 
   @Post('cover')
-  @UseInterceptors(FileInterceptor('coverPhoto'))
+  @UseInterceptors(FileInterceptor('coverPhoto', ProfileController.getFileUploadConfig('uploads/cover-photos')))
   @ApiOperation({ summary: 'Upload cover photo' })
   @ApiResponse({ status: 200, description: 'Cover photo uploaded successfully' })
   async uploadCoverPhoto(@Request() req, @UploadedFile() file: Express.Multer.File) {

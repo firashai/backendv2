@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -599,27 +599,51 @@ export class AuthService {
   }
 
   async uploadProfilePicture(userId: number, file: Express.Multer.File) {
-    // TODO: Implement file upload to storage service
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    if (!file.filename) {
+      throw new BadRequestException('File upload failed - no filename generated');
+    }
+
     const fileUrl = `/uploads/profile-pictures/${file.filename}`;
     
     const user = await this.userRepository.findOne({
       where: { id: userId }
     });
     
-    if (user) {
-      user.profilePicture = fileUrl;
-      await this.userRepository.save(user);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    user.profilePicture = fileUrl;
+    await this.userRepository.save(user);
 
     return { url: fileUrl };
   }
 
   async uploadCoverPhoto(userId: number, file: Express.Multer.File) {
-    // TODO: Implement file upload to storage service
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    if (!file.filename) {
+      throw new BadRequestException('File upload failed - no filename generated');
+    }
+
     const fileUrl = `/uploads/cover-photos/${file.filename}`;
     
-    // Update user's cover photo URL
-    await this.userRepository.update(userId, { coverPhoto: fileUrl });
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.coverPhoto = fileUrl;
+    await this.userRepository.save(user);
     
     return { url: fileUrl };
   }
