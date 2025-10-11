@@ -91,4 +91,24 @@ export class CreateJournalistDto {
   @IsOptional()
   @IsNumber()
   totalProjects?: number;
+
+  @IsOptional()
+  @IsNumber()
+  onTimeRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  onBudgetRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  acceptRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  repeatHireRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  jobSuccessRate?: number;
 }

@@ -99,4 +99,29 @@ export class RegisterJournalistDto {
   @IsOptional()
   @IsNumber()
   totalProjects?: number;
+
+  @ApiProperty({ example: 95, required: false })
+  @IsOptional()
+  @IsNumber()
+  onTimeRate?: number;
+
+  @ApiProperty({ example: 90, required: false })
+  @IsOptional()
+  @IsNumber()
+  onBudgetRate?: number;
+
+  @ApiProperty({ example: 85, required: false })
+  @IsOptional()
+  @IsNumber()
+  acceptRate?: number;
+
+  @ApiProperty({ example: 70, required: false })
+  @IsOptional()
+  @IsNumber()
+  repeatHireRate?: number;
+
+  @ApiProperty({ example: 100, required: false })
+  @IsOptional()
+  @IsNumber()
+  jobSuccessRate?: number;
 }

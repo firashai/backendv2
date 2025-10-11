@@ -121,6 +121,26 @@ export class Journalist {
   @Column({ default: 0 })
   totalProjects: number;
 
+  @ApiProperty()
+  @Column({ default: 0 })
+  onTimeRate: number;
+
+  @ApiProperty()
+  @Column({ default: 0 })
+  onBudgetRate: number;
+
+  @ApiProperty()
+  @Column({ default: 0 })
+  acceptRate: number;
+
+  @ApiProperty()
+  @Column({ default: 0 })
+  repeatHireRate: number;
+
+  @ApiProperty()
+  @Column({ default: 0 })
+  jobSuccessRate: number;
+
   // Removed skills and languages columns - now handled by junction tables
 
   @ApiProperty()
