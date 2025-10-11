@@ -97,6 +97,14 @@ export class User {
 
   @ApiProperty()
   @Column({ nullable: true })
+  oauthProvider: string;
+
+  @ApiProperty()
+  @Column({ nullable: true })
+  oauthProviderId: string;
+
+  @ApiProperty()
+  @Column({ nullable: true })
   lastLoginAt: Date;
 
   @ApiProperty()

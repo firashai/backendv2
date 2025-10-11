@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import axios from 'axios';
 import { User, UserRole, UserStatus } from '../users/entities/user.entity';
 import { Journalist } from '../journalists/entities/journalist.entity';
 import { Company } from '../companies/entities/company.entity';
@@ -294,5 +295,156 @@ export class AuthService {
         profile: registeredUser,
       },
     };
+  }
+
+  // OAuth Methods
+  async handleGoogleOAuth(code: string) {
+    try {
+      // Exchange code for access token
+      const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      });
+
+      const { access_token } = tokenResponse.data;
+
+      // Get user info from Google
+      const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+
+      const { id, email, given_name, family_name, picture } = userResponse.data;
+
+      return this.handleOAuthUser({
+        providerId: id,
+        email,
+        firstName: given_name,
+        lastName: family_name,
+        picture,
+        provider: 'google'
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Google OAuth failed');
+    }
+  }
+
+  async handleFacebookOAuth(code: string) {
+    try {
+      // Exchange code for access token
+      const tokenResponse = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
+        params: {
+          client_id: process.env.FACEBOOK_APP_ID,
+          client_secret: process.env.FACEBOOK_APP_SECRET,
+          redirect_uri: process.env.FACEBOOK_REDIRECT_URI,
+          code,
+        }
+      });
+
+      const { access_token } = tokenResponse.data;
+
+      // Get user info from Facebook
+      const userResponse = await axios.get('https://graph.facebook.com/v18.0/me', {
+        params: {
+          fields: 'id,email,first_name,last_name,picture',
+          access_token,
+        }
+      });
+
+      const { id, email, first_name, last_name, picture } = userResponse.data;
+
+      return this.handleOAuthUser({
+        providerId: id,
+        email,
+        firstName: first_name,
+        lastName: last_name,
+        picture: picture?.data?.url,
+        provider: 'facebook'
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Facebook OAuth failed');
+    }
+  }
+
+  private async handleOAuthUser(oauthUser: {
+    providerId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+    provider: 'google' | 'facebook';
+  }) {
+    // Check if user already exists
+    let user = await this.userRepository.findOne({
+      where: { email: oauthUser.email }
+    });
+
+    if (!user) {
+      // Create new user for OAuth
+      user = this.userRepository.create({
+        email: oauthUser.email,
+        firstName: oauthUser.firstName,
+        lastName: oauthUser.lastName,
+        role: UserRole.REGISTERED_USER,
+        status: UserStatus.ACTIVE,
+        emailVerified: true,
+        // Store OAuth provider info in a JSON field or separate table
+        oauthProvider: oauthUser.provider,
+        oauthProviderId: oauthUser.providerId,
+      });
+
+      user = await this.userRepository.save(user);
+
+      // Create registered user profile
+      const registeredUser = this.registeredUserRepository.create({
+        user,
+        bio: `Signed up via ${oauthUser.provider}`,
+        profilePicture: oauthUser.picture,
+      });
+
+      await this.registeredUserRepository.save(registeredUser);
+    }
+
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      },
+    };
+  }
+
+  getGoogleAuthUrl(): string {
+    const params = new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      response_type: 'code',
+      scope: 'openid email profile',
+      access_type: 'offline',
+      prompt: 'consent',
+    });
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  }
+
+  getFacebookAuthUrl(): string {
+    const params = new URLSearchParams({
+      client_id: process.env.FACEBOOK_APP_ID,
+      redirect_uri: process.env.FACEBOOK_REDIRECT_URI,
+      response_type: 'code',
+      scope: 'email,public_profile',
+    });
+
+    return `https://www.facebook.com/v18.0/dialog/oauth?${params.toString()}`;
   }
 }
