@@ -3,7 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import axios from 'axios';
+// Using Node.js built-in fetch (available in Node 18+)
+// import axios from 'axios';
 import { User, UserRole, UserStatus } from '../users/entities/user.entity';
 import { Journalist } from '../journalists/entities/journalist.entity';
 import { Company } from '../companies/entities/company.entity';
@@ -301,22 +302,37 @@ export class AuthService {
   async handleGoogleOAuth(code: string) {
     try {
       // Exchange code for access token
-      const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        code,
-        grant_type: 'authorization_code',
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        }),
       });
 
-      const { access_token } = tokenResponse.data;
+      if (!tokenResponse.ok) {
+        throw new Error(`Token exchange failed: ${tokenResponse.status}`);
+      }
+      
+      const tokenData = await tokenResponse.json();
+      const { access_token } = tokenData;
 
       // Get user info from Google
-      const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+      const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: { Authorization: `Bearer ${access_token}` }
       });
 
-      const { id, email, given_name, family_name, picture } = userResponse.data;
+      if (!userResponse.ok) {
+        throw new Error(`User info fetch failed: ${userResponse.status}`);
+      }
+      
+      const { id, email, given_name, family_name, picture } = await userResponse.json();
 
       return this.handleOAuthUser({
         providerId: id,
@@ -334,26 +350,32 @@ export class AuthService {
   async handleFacebookOAuth(code: string) {
     try {
       // Exchange code for access token
-      const tokenResponse = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
-        params: {
-          client_id: process.env.FACEBOOK_APP_ID,
-          client_secret: process.env.FACEBOOK_APP_SECRET,
-          redirect_uri: process.env.FACEBOOK_REDIRECT_URI,
-          code,
-        }
-      });
+      const tokenUrl = new URL('https://graph.facebook.com/v18.0/oauth/access_token');
+      tokenUrl.searchParams.set('client_id', process.env.FACEBOOK_APP_ID);
+      tokenUrl.searchParams.set('client_secret', process.env.FACEBOOK_APP_SECRET);
+      tokenUrl.searchParams.set('redirect_uri', process.env.FACEBOOK_REDIRECT_URI);
+      tokenUrl.searchParams.set('code', code);
 
-      const { access_token } = tokenResponse.data;
+      const tokenResponse = await fetch(tokenUrl.toString());
+      
+      if (!tokenResponse.ok) {
+        throw new Error(`Token exchange failed: ${tokenResponse.status}`);
+      }
+      
+      const { access_token } = await tokenResponse.json();
 
       // Get user info from Facebook
-      const userResponse = await axios.get('https://graph.facebook.com/v18.0/me', {
-        params: {
-          fields: 'id,email,first_name,last_name,picture',
-          access_token,
-        }
-      });
+      const userUrl = new URL('https://graph.facebook.com/v18.0/me');
+      userUrl.searchParams.set('fields', 'id,email,first_name,last_name,picture');
+      userUrl.searchParams.set('access_token', access_token);
 
-      const { id, email, first_name, last_name, picture } = userResponse.data;
+      const userResponse = await fetch(userUrl.toString());
+      
+      if (!userResponse.ok) {
+        throw new Error(`User info fetch failed: ${userResponse.status}`);
+      }
+      
+      const { id, email, first_name, last_name, picture } = await userResponse.json();
 
       return this.handleOAuthUser({
         providerId: id,
