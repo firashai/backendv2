@@ -84,4 +84,19 @@ export class RegisterJournalistDto {
   @IsOptional()
   @IsArray()
   previousWorkLinks?: string[];
+
+  @ApiProperty({ example: 25, required: false })
+  @IsOptional()
+  @IsNumber()
+  totalClients?: number;
+
+  @ApiProperty({ example: 5, required: false })
+  @IsOptional()
+  @IsNumber()
+  yearsExperience?: number;
+
+  @ApiProperty({ example: 45, required: false })
+  @IsOptional()
+  @IsNumber()
+  totalProjects?: number;
 }

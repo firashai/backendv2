@@ -109,6 +109,18 @@ export class Journalist {
   @Column({ default: 0 })
   completedProjects: number;
 
+  @ApiProperty()
+  @Column({ default: 0 })
+  totalClients: number;
+
+  @ApiProperty()
+  @Column({ default: 0 })
+  yearsExperience: number;
+
+  @ApiProperty()
+  @Column({ default: 0 })
+  totalProjects: number;
+
   // Removed skills and languages columns - now handled by junction tables
 
   @ApiProperty()

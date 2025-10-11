@@ -79,4 +79,16 @@ export class CreateJournalistDto {
   @IsOptional()
   @IsBoolean()
   canTravel?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  totalClients?: number;
+
+  @IsOptional()
+  @IsNumber()
+  yearsExperience?: number;
+
+  @IsOptional()
+  @IsNumber()
+  totalProjects?: number;
 }
