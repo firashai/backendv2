@@ -22,13 +22,22 @@ export class JournalistsService {
   }
 
   async findAll(searchDto?: SearchJournalistDto): Promise<Journalist[]> {
-    if (searchDto && (searchDto.location || searchDto.mediaWorkType || searchDto.analystSpecialty || searchDto.skills || searchDto.languages)) {
+    if (searchDto && (searchDto.location || searchDto.mediaWorkType || searchDto.analystSpecialty || searchDto.skills || searchDto.languages || searchDto.skill)) {
       return this.search(searchDto);
     }
     
     const queryBuilder = this.journalistRepository.createQueryBuilder('journalist')
       .leftJoinAndSelect('journalist.user', 'user')
+      .leftJoinAndSelect('user.country', 'country')
       .leftJoinAndSelect('journalist.mediaContent', 'mediaContent')
+      .leftJoinAndSelect('journalist.journalistSkills', 'journalistSkills')
+      .leftJoinAndSelect('journalistSkills.skill', 'skill')
+      .leftJoinAndSelect('journalist.journalistMediaWorkTypes', 'journalistMediaWorkTypes')
+      .leftJoinAndSelect('journalistMediaWorkTypes.mediaWorkType', 'mediaWorkType')
+      .leftJoinAndSelect('journalist.journalistLanguages', 'journalistLanguages')
+      .leftJoinAndSelect('journalistLanguages.language', 'language')
+      .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
+      .andWhere('user.status = :status', { status: 'active' })
       .orderBy('journalist.createdAt', 'DESC');
 
     if (searchDto?.limit) {
@@ -41,7 +50,17 @@ export class JournalistsService {
   async findOne(id: number): Promise<Journalist> {
     const journalist = await this.journalistRepository.findOne({
       where: { id },
-      relations: ['user', 'mediaContent'],
+      relations: [
+        'user', 
+        'user.country',
+        'mediaContent',
+        'journalistSkills',
+        'journalistSkills.skill',
+        'journalistMediaWorkTypes',
+        'journalistMediaWorkTypes.mediaWorkType',
+        'journalistLanguages',
+        'journalistLanguages.language'
+      ],
     });
 
     if (!journalist) {
@@ -131,19 +150,23 @@ export class JournalistsService {
     const queryBuilder = this.journalistRepository
       .createQueryBuilder('journalist')
       .leftJoinAndSelect('journalist.user', 'user')
+      .leftJoinAndSelect('user.country', 'country')
       .leftJoinAndSelect('journalist.mediaContent', 'mediaContent')
+      .leftJoinAndSelect('journalist.journalistSkills', 'journalistSkills')
+      .leftJoinAndSelect('journalistSkills.skill', 'skill')
+      .leftJoinAndSelect('journalist.journalistMediaWorkTypes', 'journalistMediaWorkTypes')
+      .leftJoinAndSelect('journalistMediaWorkTypes.mediaWorkType', 'mediaWorkType')
+      .leftJoinAndSelect('journalist.journalistLanguages', 'journalistLanguages')
+      .leftJoinAndSelect('journalistLanguages.language', 'language')
       .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
       .andWhere('user.status = :status', { status: 'active' });
 
     if (location) {
-      queryBuilder.andWhere(
-        '(journalist.country LIKE :location OR journalist.cityOfResidence LIKE :location)',
-        { location: `%${location}%` }
-      );
+      queryBuilder.andWhere('country.name LIKE :location', { location: `%${location}%` });
     }
 
     if (mediaWorkType) {
-      queryBuilder.andWhere('journalist.mediaWorkType = :mediaWorkType', { mediaWorkType });
+      queryBuilder.andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType });
     }
 
     if (analystSpecialty) {
@@ -161,15 +184,17 @@ export class JournalistsService {
     // Handle both single skill and skills array
     const skillsToSearch = skill ? [skill] : (skills || []);
     if (skillsToSearch.length > 0) {
-      // legacy JSON field match: any of the provided skills
       queryBuilder.andWhere(
-        skillsToSearch.map((_, idx) => `JSON_CONTAINS(journalist.skills, :skill${idx})`).join(' OR '),
-        Object.fromEntries(skillsToSearch.map((s, idx) => [`skill${idx}`, JSON.stringify([s])] as const))
+        skillsToSearch.map((_, idx) => `skill.name = :skill${idx}`).join(' OR '),
+        Object.fromEntries(skillsToSearch.map((s, idx) => [`skill${idx}`, s] as const))
       );
     }
 
     if (languages && languages.length > 0) {
-      queryBuilder.andWhere('JSON_CONTAINS(journalist.languages, :languages)', { languages: JSON.stringify(languages) });
+      queryBuilder.andWhere(
+        languages.map((_, idx) => `language.name = :language${idx}`).join(' OR '),
+        Object.fromEntries(languages.map((l, idx) => [`language${idx}`, l] as const))
+      );
     }
 
     queryBuilder
