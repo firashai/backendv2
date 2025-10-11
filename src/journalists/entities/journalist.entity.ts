@@ -218,6 +218,11 @@ export class Journalist {
 
   @OneToMany(() => JournalistLanguage, journalistLanguage => journalistLanguage.journalist)
   journalistLanguages: JournalistLanguage[];
+
+  // Virtual properties for frontend compatibility
+  skills?: any[];
+  mediaWorkTypes?: any[];
+  languages?: any[];
 }
 
 // Import these entities to avoid circular dependency issues

@@ -44,7 +44,10 @@ export class JournalistsService {
       queryBuilder.limit(searchDto.limit);
     }
 
-    return queryBuilder.getMany();
+    const journalists = await queryBuilder.getMany();
+    
+    // Transform the data to match frontend expectations
+    return journalists.map(journalist => this.transformJournalistData(journalist));
   }
 
   async findOne(id: number): Promise<Journalist> {
@@ -67,7 +70,8 @@ export class JournalistsService {
       throw new NotFoundException(`Journalist with ID ${id} not found`);
     }
 
-    return journalist;
+    // Transform the data to match frontend expectations
+    return this.transformJournalistData(journalist);
   }
 
   async findByUserId(userId: number): Promise<Journalist> {
@@ -203,7 +207,10 @@ export class JournalistsService {
       .limit(limit)
       .offset(offset);
 
-    return queryBuilder.getMany();
+    const journalists = await queryBuilder.getMany();
+    
+    // Transform the data to match frontend expectations
+    return journalists.map(journalist => this.transformJournalistData(journalist));
   }
 
   async getTopRated(limit: number = 10): Promise<Journalist[]> {
@@ -247,5 +254,27 @@ export class JournalistsService {
     const journalist = await this.findOne(id);
     journalist.completedProjects += 1;
     return this.journalistRepository.save(journalist);
+  }
+
+  private transformJournalistData(journalist: Journalist): Journalist {
+    // Transform junction table data to match frontend expectations
+    const transformed = { ...journalist };
+    
+    // Transform journalistSkills to skills
+    if (journalist.journalistSkills) {
+      transformed.skills = journalist.journalistSkills.map(js => js.skill);
+    }
+    
+    // Transform journalistMediaWorkTypes to mediaWorkTypes
+    if (journalist.journalistMediaWorkTypes) {
+      transformed.mediaWorkTypes = journalist.journalistMediaWorkTypes.map(jmwt => jmwt.mediaWorkType);
+    }
+    
+    // Transform journalistLanguages to languages
+    if (journalist.journalistLanguages) {
+      transformed.languages = journalist.journalistLanguages.map(jl => jl.language);
+    }
+    
+    return transformed;
   }
 }
