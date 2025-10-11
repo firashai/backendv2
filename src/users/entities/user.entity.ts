@@ -80,6 +80,10 @@ export class User {
   profilePicture: string;
 
   @ApiProperty()
+  @Column({ nullable: true })
+  coverPhoto: string;
+
+  @ApiProperty()
   @Column({ default: false })
   emailVerified: boolean;
 

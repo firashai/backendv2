@@ -520,6 +520,7 @@ export class AuthService {
         city: user.city,
         phoneNumber: user.phoneNumber,
         profilePicture: user.profilePicture,
+        coverPhoto: user.coverPhoto,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt
       },
@@ -617,7 +618,9 @@ export class AuthService {
     // TODO: Implement file upload to storage service
     const fileUrl = `/uploads/cover-photos/${file.filename}`;
     
-    // TODO: Store cover photo URL in user profile
+    // Update user's cover photo URL
+    await this.userRepository.update(userId, { coverPhoto: fileUrl });
+    
     return { url: fileUrl };
   }
 
