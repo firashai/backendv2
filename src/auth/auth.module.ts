@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { OAuthController } from './oauth.controller';
+import { ProfileController } from './profile.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
@@ -31,7 +32,7 @@ import { RegisteredUser } from '../registered-users/entities/registered-user.ent
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController, OAuthController],
+  controllers: [AuthController, OAuthController, ProfileController],
   providers: [AuthService, JwtStrategy, LocalStrategy],
   exports: [AuthService],
 })

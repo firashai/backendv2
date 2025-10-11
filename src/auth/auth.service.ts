@@ -469,4 +469,175 @@ export class AuthService {
 
     return `https://www.facebook.com/v18.0/dialog/oauth?${params.toString()}`;
   }
+
+  // Profile Management Methods
+  async getUserProfile(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['country']
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Get profile based on user role
+    let profile = null;
+    if (user.role === 'journalist') {
+      profile = await this.journalistRepository.findOne({
+        where: { user: { id: userId } },
+        relations: ['skills', 'mediaWorkTypes', 'languages']
+      });
+    } else if (user.role === 'company') {
+      profile = await this.companyRepository.findOne({
+        where: { user: { id: userId } }
+      });
+    } else {
+      profile = await this.registeredUserRepository.findOne({
+        where: { user: { id: userId } }
+      });
+    }
+
+    return {
+      id: user.id,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        countryId: user.countryId,
+        country: user.country,
+        city: user.city,
+        phoneNumber: user.phoneNumber,
+        profilePicture: user.profilePicture,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt
+      },
+      bio: profile?.bio,
+      title: profile?.name || 'Professional',
+      rating: profile?.rating || 0,
+      totalReviews: profile?.totalReviews || 0,
+      earnings: profile?.earnings || 0,
+      completionRate: profile?.completionRate || 0,
+      totalProjects: profile?.totalProjects || 0,
+      totalClients: profile?.totalClients || 0,
+      yearsExperience: profile?.yearsExperience || 0,
+      verifications: {
+        identity: false,
+        payment: false,
+        phone: !!user.phoneNumber,
+        email: user.emailVerified,
+        facebook: !!user.oauthProvider && user.oauthProvider === 'facebook'
+      },
+      portfolio: [], // TODO: Implement portfolio
+      reviews: [], // TODO: Implement reviews
+      experience: [], // TODO: Implement experience
+      skills: profile?.skills || [],
+      mediaWorkTypes: profile?.mediaWorkTypes || [],
+      languages: profile?.languages || []
+    };
+  }
+
+  async updateUserProfile(userId: number, profileData: any) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Update user basic info
+    if (profileData.firstName) user.firstName = profileData.firstName;
+    if (profileData.lastName) user.lastName = profileData.lastName;
+    if (profileData.city) user.city = profileData.city;
+    if (profileData.phoneNumber) user.phoneNumber = profileData.phoneNumber;
+
+    await this.userRepository.save(user);
+
+    // Update profile based on role
+    if (user.role === 'journalist') {
+      const journalist = await this.journalistRepository.findOne({
+        where: { user: { id: userId } }
+      });
+      if (journalist) {
+        if (profileData.bio) journalist.bio = profileData.bio;
+        // Note: Journalist entity doesn't have a title field
+        await this.journalistRepository.save(journalist);
+      }
+    } else if (user.role === 'company') {
+      const company = await this.companyRepository.findOne({
+        where: { user: { id: userId } }
+      });
+      if (company) {
+        if (profileData.bio) company.description = profileData.bio;
+        if (profileData.title) company.name = profileData.title;
+        await this.companyRepository.save(company);
+      }
+    } else {
+      const registeredUser = await this.registeredUserRepository.findOne({
+        where: { user: { id: userId } }
+      });
+      if (registeredUser) {
+        if (profileData.bio) registeredUser.bio = profileData.bio;
+        await this.registeredUserRepository.save(registeredUser);
+      }
+    }
+
+    return this.getUserProfile(userId);
+  }
+
+  async uploadProfilePicture(userId: number, file: Express.Multer.File) {
+    // TODO: Implement file upload to storage service
+    const fileUrl = `/uploads/profile-pictures/${file.filename}`;
+    
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
+    
+    if (user) {
+      user.profilePicture = fileUrl;
+      await this.userRepository.save(user);
+    }
+
+    return { url: fileUrl };
+  }
+
+  async uploadCoverPhoto(userId: number, file: Express.Multer.File) {
+    // TODO: Implement file upload to storage service
+    const fileUrl = `/uploads/cover-photos/${file.filename}`;
+    
+    // TODO: Store cover photo URL in user profile
+    return { url: fileUrl };
+  }
+
+  async addPortfolioItem(userId: number, itemData: any) {
+    // TODO: Implement portfolio items
+    return { id: 1, ...itemData, createdAt: new Date().toISOString() };
+  }
+
+  async updatePortfolioItem(userId: number, itemId: number, itemData: any) {
+    // TODO: Implement portfolio item update
+    return { id: itemId, ...itemData };
+  }
+
+  async deletePortfolioItem(userId: number, itemId: number) {
+    // TODO: Implement portfolio item deletion
+    return { success: true };
+  }
+
+  async addExperience(userId: number, experienceData: any) {
+    // TODO: Implement experience
+    return { id: 1, ...experienceData };
+  }
+
+  async updateExperience(userId: number, experienceId: number, experienceData: any) {
+    // TODO: Implement experience update
+    return { id: experienceId, ...experienceData };
+  }
+
+  async deleteExperience(userId: number, experienceId: number) {
+    // TODO: Implement experience deletion
+    return { success: true };
+  }
 }
