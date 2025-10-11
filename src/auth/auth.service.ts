@@ -61,6 +61,8 @@ export class AuthService {
         email: user.email,
         role: user.role,
         status: user.status,
+        firstName: user.firstName,
+        lastName: user.lastName,
       },
     };
   }
@@ -115,6 +117,8 @@ export class AuthService {
         email: savedUser.email,
         role: savedUser.role,
         status: savedUser.status,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
         profile: journalist,
       },
     };
@@ -170,6 +174,8 @@ export class AuthService {
         email: savedUser.email,
         role: savedUser.role,
         status: savedUser.status,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
         profile: company,
       },
     };
@@ -293,6 +299,8 @@ export class AuthService {
         email: savedUser.email,
         role: savedUser.role,
         status: savedUser.status,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
         profile: registeredUser,
       },
     };
@@ -442,6 +450,8 @@ export class AuthService {
         email: user.email,
         role: user.role,
         status: user.status,
+        firstName: user.firstName,
+        lastName: user.lastName,
       },
     };
   }
