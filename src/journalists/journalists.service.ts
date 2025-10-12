@@ -50,9 +50,23 @@ export class JournalistsService {
     }
 
     console.log('🔍 Generated SQL:', queryBuilder.getSql());
+    
+    // First, let's check the count without joins to see if that's the issue
+    const countQuery = this.journalistRepository.createQueryBuilder('journalist');
+    const totalCount = await countQuery.getCount();
+    console.log('🔍 Total journalists in database (no joins):', totalCount);
+    
     const journalists = await queryBuilder.getMany();
     console.log('🔍 Found journalists count:', journalists.length);
     console.log('🔍 Journalists IDs:', journalists.map(j => j.id));
+    
+    // Let's also try a simple find without complex joins
+    const simpleJournalists = await this.journalistRepository.find({
+      relations: ['user'],
+      take: searchDto?.limit || 10
+    });
+    console.log('🔍 Simple query count:', simpleJournalists.length);
+    console.log('🔍 Simple query IDs:', simpleJournalists.map(j => j.id));
     
     // Transform the data to match frontend expectations
     const transformed = journalists.map(journalist => this.transformJournalistData(journalist));
@@ -300,6 +314,45 @@ export class JournalistsService {
         isAvailable: j.isAvailable,
         isApproved: j.isApproved,
         rating: j.rating,
+        userStatus: j.user?.status,
+        userName: j.user ? `${j.user.firstName} ${j.user.lastName}` : 'No user'
+      }))
+    };
+  }
+
+  async debugSimpleQuery() {
+    console.log('🔍 DEBUG: Simple query test');
+    
+    // Test 1: Basic count
+    const basicCount = await this.journalistRepository.count();
+    console.log('🔍 Basic count:', basicCount);
+    
+    // Test 2: Simple find with limit
+    const simpleFind = await this.journalistRepository.find({
+      take: 10,
+      order: { createdAt: 'DESC' }
+    });
+    console.log('🔍 Simple find count:', simpleFind.length);
+    console.log('🔍 Simple find IDs:', simpleFind.map(j => j.id));
+    
+    // Test 3: Find with user relation
+    const withUser = await this.journalistRepository.find({
+      relations: ['user'],
+      take: 10,
+      order: { createdAt: 'DESC' }
+    });
+    console.log('🔍 With user count:', withUser.length);
+    console.log('🔍 With user IDs:', withUser.map(j => j.id));
+    
+    return {
+      basicCount,
+      simpleFindCount: simpleFind.length,
+      simpleFindIds: simpleFind.map(j => j.id),
+      withUserCount: withUser.length,
+      withUserIds: withUser.map(j => j.id),
+      withUserData: withUser.map(j => ({
+        id: j.id,
+        isAvailable: j.isAvailable,
         userStatus: j.user?.status,
         userName: j.user ? `${j.user.firstName} ${j.user.lastName}` : 'No user'
       }))
