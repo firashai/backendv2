@@ -29,6 +29,30 @@ export class JournalistsService {
       return this.search(searchDto);
     }
     
+    // First, get the journalist IDs with limit to avoid duplicate rows from joins
+    const journalistIdsQuery = this.journalistRepository.createQueryBuilder('journalist')
+      .leftJoin('journalist.user', 'user')
+      .leftJoin('user.country', 'country')
+      // Temporarily commented out filters for testing
+      // .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
+      // .andWhere('user.status = :status', { status: 'active' })
+      .orderBy('journalist.createdAt', 'DESC')
+      .select('journalist.id');
+
+    if (searchDto?.limit) {
+      console.log('🔍 Applying limit to journalist IDs:', searchDto.limit);
+      journalistIdsQuery.limit(searchDto.limit);
+    }
+
+    const journalistIds = await journalistIdsQuery.getMany();
+    console.log('🔍 Found journalist IDs:', journalistIds.map(j => j.id));
+
+    if (journalistIds.length === 0) {
+      console.log('🔍 No journalists found');
+      return [];
+    }
+
+    // Now fetch the full data for these specific journalists
     const queryBuilder = this.journalistRepository.createQueryBuilder('journalist')
       .leftJoinAndSelect('journalist.user', 'user')
       .leftJoinAndSelect('user.country', 'country')
@@ -39,15 +63,8 @@ export class JournalistsService {
       .leftJoinAndSelect('journalistMediaWorkTypes.mediaWorkType', 'mediaWorkType')
       .leftJoinAndSelect('journalist.journalistLanguages', 'journalistLanguages')
       .leftJoinAndSelect('journalistLanguages.language', 'language')
-      // Temporarily commented out filters for testing
-      // .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
-      // .andWhere('user.status = :status', { status: 'active' })
+      .where('journalist.id IN (:...ids)', { ids: journalistIds.map(j => j.id) })
       .orderBy('journalist.createdAt', 'DESC');
-
-    if (searchDto?.limit) {
-      console.log('🔍 Applying limit:', searchDto.limit);
-      queryBuilder.limit(searchDto.limit);
-    }
 
     console.log('🔍 Generated SQL:', queryBuilder.getSql());
     
@@ -175,6 +192,73 @@ export class JournalistsService {
       offset = 0,
     } = searchDto;
 
+    // First, get the journalist IDs with filters to avoid duplicate rows from joins
+    const journalistIdsQuery = this.journalistRepository
+      .createQueryBuilder('journalist')
+      .leftJoin('journalist.user', 'user')
+      .leftJoin('user.country', 'country')
+      .leftJoin('journalist.journalistSkills', 'journalistSkills')
+      .leftJoin('journalistSkills.skill', 'skill')
+      .leftJoin('journalist.journalistMediaWorkTypes', 'journalistMediaWorkTypes')
+      .leftJoin('journalistMediaWorkTypes.mediaWorkType', 'mediaWorkType')
+      .leftJoin('journalist.journalistLanguages', 'journalistLanguages')
+      .leftJoin('journalistLanguages.language', 'language')
+      .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
+      .andWhere('user.status = :status', { status: 'active' })
+      .select('journalist.id')
+      .distinct(true);
+
+    if (location) {
+      journalistIdsQuery.andWhere('country.name LIKE :location', { location: `%${location}%` });
+    }
+
+    if (mediaWorkType) {
+      journalistIdsQuery.andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType });
+    }
+
+    if (analystSpecialty) {
+      journalistIdsQuery.andWhere('journalist.analystSpecialty = :analystSpecialty', { analystSpecialty });
+    }
+
+    if (hasCamera !== undefined) {
+      journalistIdsQuery.andWhere('journalist.hasCamera = :hasCamera', { hasCamera });
+    }
+
+    if (canTravel !== undefined) {
+      journalistIdsQuery.andWhere('journalist.canTravel = :canTravel', { canTravel });
+    }
+
+    // Handle both single skill and skills array
+    const skillsToSearch = skill ? [skill] : (skills || []);
+    if (skillsToSearch.length > 0) {
+      journalistIdsQuery.andWhere(
+        skillsToSearch.map((_, idx) => `skill.name = :skill${idx}`).join(' OR '),
+        Object.fromEntries(skillsToSearch.map((s, idx) => [`skill${idx}`, s] as const))
+      );
+    }
+
+    if (languages && languages.length > 0) {
+      journalistIdsQuery.andWhere(
+        languages.map((_, idx) => `language.name = :language${idx}`).join(' OR '),
+        Object.fromEntries(languages.map((l, idx) => [`language${idx}`, l] as const))
+      );
+    }
+
+    journalistIdsQuery
+      .orderBy('journalist.rating', 'DESC')
+      .addOrderBy('journalist.completedProjects', 'DESC')
+      .limit(limit)
+      .offset(offset);
+
+    const journalistIds = await journalistIdsQuery.getMany();
+    console.log('🔍 Search found journalist IDs:', journalistIds.map(j => j.id));
+
+    if (journalistIds.length === 0) {
+      console.log('🔍 No journalists found in search');
+      return [];
+    }
+
+    // Now fetch the full data for these specific journalists
     const queryBuilder = this.journalistRepository
       .createQueryBuilder('journalist')
       .leftJoinAndSelect('journalist.user', 'user')
@@ -186,50 +270,9 @@ export class JournalistsService {
       .leftJoinAndSelect('journalistMediaWorkTypes.mediaWorkType', 'mediaWorkType')
       .leftJoinAndSelect('journalist.journalistLanguages', 'journalistLanguages')
       .leftJoinAndSelect('journalistLanguages.language', 'language')
-      .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
-      .andWhere('user.status = :status', { status: 'active' });
-
-    if (location) {
-      queryBuilder.andWhere('country.name LIKE :location', { location: `%${location}%` });
-    }
-
-    if (mediaWorkType) {
-      queryBuilder.andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType });
-    }
-
-    if (analystSpecialty) {
-      queryBuilder.andWhere('journalist.analystSpecialty = :analystSpecialty', { analystSpecialty });
-    }
-
-    if (hasCamera !== undefined) {
-      queryBuilder.andWhere('journalist.hasCamera = :hasCamera', { hasCamera });
-    }
-
-    if (canTravel !== undefined) {
-      queryBuilder.andWhere('journalist.canTravel = :canTravel', { canTravel });
-    }
-
-    // Handle both single skill and skills array
-    const skillsToSearch = skill ? [skill] : (skills || []);
-    if (skillsToSearch.length > 0) {
-      queryBuilder.andWhere(
-        skillsToSearch.map((_, idx) => `skill.name = :skill${idx}`).join(' OR '),
-        Object.fromEntries(skillsToSearch.map((s, idx) => [`skill${idx}`, s] as const))
-      );
-    }
-
-    if (languages && languages.length > 0) {
-      queryBuilder.andWhere(
-        languages.map((_, idx) => `language.name = :language${idx}`).join(' OR '),
-        Object.fromEntries(languages.map((l, idx) => [`language${idx}`, l] as const))
-      );
-    }
-
-    queryBuilder
+      .where('journalist.id IN (:...ids)', { ids: journalistIds.map(j => j.id) })
       .orderBy('journalist.rating', 'DESC')
-      .addOrderBy('journalist.completedProjects', 'DESC')
-      .limit(limit)
-      .offset(offset);
+      .addOrderBy('journalist.completedProjects', 'DESC');
 
     const journalists = await queryBuilder.getMany();
     
