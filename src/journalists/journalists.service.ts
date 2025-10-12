@@ -36,8 +36,9 @@ export class JournalistsService {
       .leftJoinAndSelect('journalistMediaWorkTypes.mediaWorkType', 'mediaWorkType')
       .leftJoinAndSelect('journalist.journalistLanguages', 'journalistLanguages')
       .leftJoinAndSelect('journalistLanguages.language', 'language')
-      .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
-      .andWhere('user.status = :status', { status: 'active' })
+      // Temporarily commented out filters for testing
+      // .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
+      // .andWhere('user.status = :status', { status: 'active' })
       .orderBy('journalist.createdAt', 'DESC');
 
     if (searchDto?.limit) {
