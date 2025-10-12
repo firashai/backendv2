@@ -22,7 +22,10 @@ export class JournalistsService {
   }
 
   async findAll(searchDto?: SearchJournalistDto): Promise<Journalist[]> {
+    console.log('🔍 findAll called with searchDto:', searchDto);
+    
     if (searchDto && (searchDto.location || searchDto.mediaWorkType || searchDto.analystSpecialty || searchDto.skills || searchDto.languages || searchDto.skill)) {
+      console.log('🔍 Using search method');
       return this.search(searchDto);
     }
     
@@ -42,13 +45,19 @@ export class JournalistsService {
       .orderBy('journalist.createdAt', 'DESC');
 
     if (searchDto?.limit) {
+      console.log('🔍 Applying limit:', searchDto.limit);
       queryBuilder.limit(searchDto.limit);
     }
 
+    console.log('🔍 Generated SQL:', queryBuilder.getSql());
     const journalists = await queryBuilder.getMany();
+    console.log('🔍 Found journalists count:', journalists.length);
+    console.log('🔍 Journalists IDs:', journalists.map(j => j.id));
     
     // Transform the data to match frontend expectations
-    return journalists.map(journalist => this.transformJournalistData(journalist));
+    const transformed = journalists.map(journalist => this.transformJournalistData(journalist));
+    console.log('🔍 Transformed count:', transformed.length);
+    return transformed;
   }
 
   async findOne(id: number): Promise<Journalist> {
@@ -255,6 +264,46 @@ export class JournalistsService {
     const journalist = await this.findOne(id);
     journalist.completedProjects += 1;
     return this.journalistRepository.save(journalist);
+  }
+
+  async debugRawData() {
+    console.log('🔍 DEBUG: Checking raw database data');
+    
+    // Check total journalists count
+    const totalCount = await this.journalistRepository.count();
+    console.log('🔍 Total journalists in database:', totalCount);
+    
+    // Check available journalists
+    const availableCount = await this.journalistRepository.count({ where: { isAvailable: true } });
+    console.log('🔍 Available journalists:', availableCount);
+    
+    // Check all journalists with basic info
+    const allJournalists = await this.journalistRepository.find({
+      relations: ['user'],
+      select: ['id', 'isAvailable', 'isApproved', 'rating', 'createdAt']
+    });
+    
+    console.log('🔍 All journalists basic info:', allJournalists.map(j => ({
+      id: j.id,
+      isAvailable: j.isAvailable,
+      isApproved: j.isApproved,
+      rating: j.rating,
+      userStatus: j.user?.status,
+      userName: j.user ? `${j.user.firstName} ${j.user.lastName}` : 'No user'
+    })));
+    
+    return {
+      totalCount,
+      availableCount,
+      journalists: allJournalists.map(j => ({
+        id: j.id,
+        isAvailable: j.isAvailable,
+        isApproved: j.isApproved,
+        rating: j.rating,
+        userStatus: j.user?.status,
+        userName: j.user ? `${j.user.firstName} ${j.user.lastName}` : 'No user'
+      }))
+    };
   }
 
   private transformJournalistData(journalist: Journalist): Journalist {

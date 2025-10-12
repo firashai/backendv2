@@ -22,6 +22,11 @@ export class JournalistsController {
     return this.journalistsService.findAll(searchDto);
   }
 
+  @Get('debug/raw')
+  async debugRaw() {
+    return this.journalistsService.debugRawData();
+  }
+
   // Journalist-specific endpoints (must come before :id routes)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.JOURNALIST)
