@@ -44,7 +44,9 @@ export class JobsService {
     }
 
     if (searchDto?.mediaWorkType) {
-      queryBuilder.andWhere('jobMediaWorkType.mediaWorkType = :mediaWorkType', { mediaWorkType: searchDto.mediaWorkType });
+      // Join with media work types table to filter by name
+      queryBuilder.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType')
+        .andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType: searchDto.mediaWorkType });
     }
 
     if (searchDto?.jobType) {
@@ -52,15 +54,18 @@ export class JobsService {
     }
 
     if (searchDto?.analystSpecialty) {
-      queryBuilder.andWhere('jobMediaWorkType.mediaWorkType = :analystSpecialty', { analystSpecialty: searchDto.analystSpecialty });
+      queryBuilder.leftJoin('jobMediaWorkType.mediaWorkType', 'analystMediaWorkType')
+        .andWhere('analystMediaWorkType.name = :analystSpecialty', { analystSpecialty: searchDto.analystSpecialty });
     }
 
     if (searchDto?.skills && searchDto.skills.length > 0) {
-      queryBuilder.andWhere('jobRequiredSkill.skill IN (:...skills)', { skills: searchDto.skills });
+      queryBuilder.leftJoin('jobRequiredSkill.skill', 'skill')
+        .andWhere('skill.name IN (:...skills)', { skills: searchDto.skills });
     }
 
     if (searchDto?.languages && searchDto.languages.length > 0) {
-      queryBuilder.andWhere('jobRequiredLanguage.language IN (:...languages)', { languages: searchDto.languages });
+      queryBuilder.leftJoin('jobRequiredLanguage.language', 'language')
+        .andWhere('language.name IN (:...languages)', { languages: searchDto.languages });
     }
 
     queryBuilder.orderBy('job.createdAt', 'DESC');
