@@ -40,7 +40,11 @@ export class JobsService {
 
     // Apply filters from SearchJobDto using junction tables
     if (searchDto?.location) {
-      queryBuilder.andWhere('jobLocation.location LIKE :location', { location: `%${searchDto.location}%` });
+      // Join with countries table to filter by country name
+      queryBuilder.leftJoin('jobLocation.country', 'country')
+        .andWhere('(country.name LIKE :location OR jobLocation.city LIKE :location)', { 
+          location: `%${searchDto.location}%` 
+        });
     }
 
     if (searchDto?.mediaWorkType) {
@@ -54,8 +58,11 @@ export class JobsService {
     }
 
     if (searchDto?.analystSpecialty) {
-      queryBuilder.leftJoin('jobMediaWorkType.mediaWorkType', 'analystMediaWorkType')
-        .andWhere('analystMediaWorkType.name = :analystSpecialty', { analystSpecialty: searchDto.analystSpecialty });
+      // Use the same join alias to avoid conflicts
+      if (!searchDto?.mediaWorkType) {
+        queryBuilder.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType');
+      }
+      queryBuilder.andWhere('mediaWorkType.name = :analystSpecialty', { analystSpecialty: searchDto.analystSpecialty });
     }
 
     if (searchDto?.skills && searchDto.skills.length > 0) {
