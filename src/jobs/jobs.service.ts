@@ -118,6 +118,23 @@ export class JobsService {
       throw new NotFoundException(`Job with ID ${id} not found`);
     }
 
+    // Calculate applications count and average bid from actual applications
+    if (job.applications && job.applications.length > 0) {
+      job.applicationsCount = job.applications.length;
+      
+      // Calculate average proposed rate from applications that have a proposed rate
+      const applicationsWithRates = job.applications.filter(app => app.proposedRate && app.proposedRate > 0);
+      if (applicationsWithRates.length > 0) {
+        const totalRates = applicationsWithRates.reduce((sum, app) => sum + Number(app.proposedRate), 0);
+        job.averageBid = Math.round(totalRates / applicationsWithRates.length);
+      } else {
+        job.averageBid = 0;
+      }
+    } else {
+      job.applicationsCount = 0;
+      job.averageBid = 0;
+    }
+
     return job;
   }
 

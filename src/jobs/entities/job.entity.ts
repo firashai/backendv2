@@ -129,6 +129,10 @@ export class Job {
   applicationsCount: number;
 
   @ApiProperty()
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  averageBid: number;
+
+  @ApiProperty()
   @Column({ default: 0 })
   viewsCount: number;
 
