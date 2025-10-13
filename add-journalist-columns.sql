@@ -55,3 +55,4 @@ WHERE `id` = 6;
 SELECT id, name, totalClients, yearsExperience, totalProjects, rating 
 FROM `journalists` 
 ORDER BY id;
+

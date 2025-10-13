@@ -20,3 +20,4 @@ SELECT
 FROM journalists j
 LEFT JOIN users u ON j.userId = u.id
 ORDER BY j.createdAt DESC;
+

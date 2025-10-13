@@ -38,3 +38,4 @@ export class OAuthController {
     res.redirect(authUrl);
   }
 }
+

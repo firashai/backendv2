@@ -39,3 +39,4 @@ export class SearchJobDto {
   @IsNumber()
   offset?: number;
 }
+

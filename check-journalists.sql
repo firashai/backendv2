@@ -30,3 +30,4 @@ SELECT COUNT(*) as available_active_journalists
 FROM journalists j
 LEFT JOIN users u ON j.userId = u.id
 WHERE j.isAvailable = true AND u.status = 'active';
+

@@ -61,3 +61,4 @@ INSERT INTO `analyst_specialty` (`id`, `name`, `description`, `createdAt`, `upda
 (6, 'International Relations', 'Global politics and diplomacy', NOW(), NOW()),
 (7, 'Technology Analysis', 'Tech industry and innovation reporting', NOW(), NOW()),
 (8, 'Environmental Analysis', 'Climate and environmental issues', NOW(), NOW());
+

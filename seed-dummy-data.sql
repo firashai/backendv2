@@ -331,3 +331,4 @@ UPDATE `companies` SET `updatedAt` = NOW() WHERE `updatedAt` IS NULL;
 UPDATE `jobs` SET `updatedAt` = NOW() WHERE `updatedAt` IS NULL;
 UPDATE `job_applications` SET `updatedAt` = NOW() WHERE `updatedAt` IS NULL;
 UPDATE `media_content` SET `updatedAt` = NOW() WHERE `updatedAt` IS NULL;
+
