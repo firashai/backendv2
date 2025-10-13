@@ -18,13 +18,20 @@ export class JobsController {
 
   @Get()
   findAll(@Query() query: any) {
-    // Handle skills[] and languages[] parameter names
+    // Handle skills[] and languages[] parameter names and ensure they are arrays
     const searchDto: SearchJobDto = {
       ...query,
-      skills: query.skills || query['skills[]'],
-      languages: query.languages || query['languages[]']
+      skills: this.normalizeArrayParam(query.skills || query['skills[]']),
+      languages: this.normalizeArrayParam(query.languages || query['languages[]'])
     };
     return this.jobsService.findAll(searchDto);
+  }
+
+  private normalizeArrayParam(value: any): string[] | undefined {
+    if (!value) return undefined;
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') return [value];
+    return undefined;
   }
 
   @Get('company/:companyId')
