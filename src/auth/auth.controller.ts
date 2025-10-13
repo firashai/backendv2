@@ -85,13 +85,4 @@ export class AuthController {
     return this.authService.resetPassword(token, newPassword);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get('profile')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user profile' })
-  @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  getProfile(@Request() req) {
-    return req.user;
-  }
 }
