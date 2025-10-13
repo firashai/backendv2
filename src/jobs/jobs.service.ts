@@ -32,11 +32,45 @@ export class JobsService {
   async findAll(searchDto?: SearchJobDto): Promise<Job[]> {
     const queryBuilder = this.jobRepository.createQueryBuilder('job')
       .leftJoinAndSelect('job.company', 'company')
-      .where('job.status = :status', { status: JobStatus.PUBLISHED })
-      .orderBy('job.createdAt', 'DESC');
+      .leftJoinAndSelect('job.jobMediaWorkTypes', 'jobMediaWorkType')
+      .leftJoinAndSelect('job.jobRequiredSkills', 'jobRequiredSkill')
+      .leftJoinAndSelect('job.jobRequiredLanguages', 'jobRequiredLanguage')
+      .leftJoinAndSelect('job.jobLocations', 'jobLocation')
+      .where('job.status = :status', { status: JobStatus.PUBLISHED });
+
+    // Apply filters from SearchJobDto using junction tables
+    if (searchDto?.location) {
+      queryBuilder.andWhere('jobLocation.location LIKE :location', { location: `%${searchDto.location}%` });
+    }
+
+    if (searchDto?.mediaWorkType) {
+      queryBuilder.andWhere('jobMediaWorkType.mediaWorkType = :mediaWorkType', { mediaWorkType: searchDto.mediaWorkType });
+    }
+
+    if (searchDto?.jobType) {
+      queryBuilder.andWhere('job.jobType = :jobType', { jobType: searchDto.jobType });
+    }
+
+    if (searchDto?.analystSpecialty) {
+      queryBuilder.andWhere('jobMediaWorkType.mediaWorkType = :analystSpecialty', { analystSpecialty: searchDto.analystSpecialty });
+    }
+
+    if (searchDto?.skills && searchDto.skills.length > 0) {
+      queryBuilder.andWhere('jobRequiredSkill.skill IN (:...skills)', { skills: searchDto.skills });
+    }
+
+    if (searchDto?.languages && searchDto.languages.length > 0) {
+      queryBuilder.andWhere('jobRequiredLanguage.language IN (:...languages)', { languages: searchDto.languages });
+    }
+
+    queryBuilder.orderBy('job.createdAt', 'DESC');
 
     if (searchDto?.limit) {
       queryBuilder.limit(searchDto.limit);
+    }
+
+    if (searchDto?.offset) {
+      queryBuilder.offset(searchDto.offset);
     }
 
     return queryBuilder.getMany();
