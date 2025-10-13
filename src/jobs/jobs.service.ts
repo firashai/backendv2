@@ -91,7 +91,18 @@ export class JobsService {
   async findOne(id: number): Promise<Job> {
     const job = await this.jobRepository.findOne({
       where: { id },
-      relations: ['company', 'applications'],
+      relations: [
+        'company', 
+        'applications',
+        'jobRequiredSkills',
+        'jobRequiredSkills.skill',
+        'jobMediaWorkTypes',
+        'jobMediaWorkTypes.mediaWorkType',
+        'jobRequiredLanguages',
+        'jobRequiredLanguages.language',
+        'jobLocations',
+        'jobLocations.country'
+      ],
     });
 
     if (!job) {
