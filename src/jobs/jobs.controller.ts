@@ -17,7 +17,13 @@ export class JobsController {
   }
 
   @Get()
-  findAll(@Query() searchDto: SearchJobDto) {
+  findAll(@Query() query: any) {
+    // Handle skills[] and languages[] parameter names
+    const searchDto: SearchJobDto = {
+      ...query,
+      skills: query.skills || query['skills[]'],
+      languages: query.languages || query['languages[]']
+    };
     return this.jobsService.findAll(searchDto);
   }
 
