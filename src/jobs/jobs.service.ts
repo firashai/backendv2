@@ -274,6 +274,14 @@ export class JobsService {
     });
   }
 
+  async findByUser(userId: number): Promise<Job[]> {
+    return this.jobRepository.find({
+      where: { postedBy: { id: userId } },
+      relations: ['company', 'postedBy', 'postedBy.country', 'applications'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async update(id: number, updateJobDto: UpdateJobDto, user: User): Promise<Job> {
     const job = await this.findOne(id);
     

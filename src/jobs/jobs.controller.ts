@@ -66,6 +66,11 @@ export class JobsController {
     return this.jobsService.findByCompany(+companyId);
   }
 
+  @Get('user/:userId')
+  findByUser(@Param('userId') userId: string) {
+    return this.jobsService.findByUser(+userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.jobsService.findOne(+id);
