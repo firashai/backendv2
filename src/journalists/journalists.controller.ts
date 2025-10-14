@@ -32,6 +32,7 @@ export class JournalistsController {
       languages: normalizeArrayParam(query.languages || query['languages[]']),
       mediaWorkTypes: normalizeArrayParam(query.mediaWorkTypes || query['mediaWorkTypes[]'] || query.mediaWorkType || query['mediaWorkType[]']),
       countries: normalizeArrayParam(query.countries || query['countries[]'] || query.country || query['country[]']),
+      experienceLevel: query.experienceLevel,
       minHourlyRate: query.minHourlyRate ? Number(query.minHourlyRate) : undefined,
       maxHourlyRate: query.maxHourlyRate ? Number(query.maxHourlyRate) : undefined,
       hasCamera: typeof query.hasCamera !== 'undefined' ? (query.hasCamera === 'true' || query.hasCamera === true) : undefined,

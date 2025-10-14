@@ -26,6 +26,10 @@ export class SearchJournalistDto {
   mediaWorkType?: string;
 
   @IsOptional()
+  @IsString()
+  experienceLevel?: string;
+
+  @IsOptional()
   @Transform(({ value }) => {
     if (Array.isArray(value)) return value;
     if (typeof value === 'string') {

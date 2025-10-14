@@ -36,6 +36,7 @@ export class JournalistsService {
         (Array.isArray(searchDto.countries) && searchDto.countries.length > 0) ||
         (typeof (searchDto as any).minHourlyRate === 'number' && (searchDto as any).minHourlyRate > 0) ||
         (typeof (searchDto as any).maxHourlyRate === 'number' && (searchDto as any).maxHourlyRate > 0) ||
+        (typeof (searchDto as any).experienceLevel === 'string' && (searchDto as any).experienceLevel.trim().length > 0) ||
         (typeof (searchDto as any).hasCamera !== 'undefined' && (searchDto as any).hasCamera === true) ||
         (typeof (searchDto as any).hasAudioEquipment !== 'undefined' && (searchDto as any).hasAudioEquipment === true) ||
         (typeof (searchDto as any).canTravel !== 'undefined' && (searchDto as any).canTravel === true)
@@ -204,6 +205,7 @@ export class JournalistsService {
       hasCamera,
       hasAudioEquipment,
       canTravel,
+      experienceLevel,
       skill,
       skills,
       languages,
@@ -264,6 +266,10 @@ export class JournalistsService {
         workTypesToSearch.map((_, idx) => `mediaWorkType.name = :workType${idx}`).join(' OR '),
         Object.fromEntries(workTypesToSearch.map((wt, idx) => [`workType${idx}`, wt] as const))
       );
+    }
+
+    if (experienceLevel) {
+      journalistIdsQuery.andWhere('journalist.experienceLevel = :experienceLevel', { experienceLevel });
     }
 
     if (analystSpecialty) {
