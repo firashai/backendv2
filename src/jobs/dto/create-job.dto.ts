@@ -118,6 +118,10 @@ export class CreateJobDto {
   @IsBoolean()
   isFeatured?: boolean;
 
+  @IsOptional()
+  @IsString()
+  additionalInfo?: string;
+
   // Junction table fields
   @IsOptional()
   @IsArray()
