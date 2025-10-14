@@ -1,5 +1,5 @@
 import { IsString, IsNumber, IsOptional, IsArray, IsEnum, IsDate, IsBoolean, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { JobType, ExperienceLevel } from '../entities/job.entity';
 
 class RequirementsDto {
@@ -74,14 +74,17 @@ export class CreateJobDto {
   benefits?: string[];
 
   @IsOptional()
+  @Transform(({ value }) => value ? new Date(value) : undefined)
   @IsDate()
   applicationDeadline?: Date;
 
   @IsOptional()
+  @Transform(({ value }) => value ? new Date(value) : undefined)
   @IsDate()
   startDate?: Date;
 
   @IsOptional()
+  @Transform(({ value }) => value ? new Date(value) : undefined)
   @IsDate()
   endDate?: Date;
 

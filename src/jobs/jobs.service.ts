@@ -76,6 +76,17 @@ export class JobsService {
       };
     }
 
+    // Handle date fields - convert strings to Date objects
+    if (createJobDto.applicationDeadline) {
+      jobData.applicationDeadline = new Date(createJobDto.applicationDeadline);
+    }
+    if (createJobDto.startDate) {
+      jobData.startDate = new Date(createJobDto.startDate);
+    }
+    if (createJobDto.endDate) {
+      jobData.endDate = new Date(createJobDto.endDate);
+    }
+
     // Remove the individual salary fields as they're now in the salary object
     delete jobData.salaryMin;
     delete jobData.salaryMax;
