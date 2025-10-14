@@ -30,7 +30,7 @@ export class JournalistsController {
       ...(query as any),
       skills: normalizeArrayParam(query.skills || query['skills[]']),
       languages: normalizeArrayParam(query.languages || query['languages[]']),
-      countries: normalizeArrayParam(query.countries || query['countries[]'])
+      countries: normalizeArrayParam(query.countries || query['countries[]'] || query.country || query['country[]'])
     } as any;
 
     return this.journalistsService.findAll(searchDto);
