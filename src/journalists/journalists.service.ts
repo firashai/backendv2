@@ -269,7 +269,18 @@ export class JournalistsService {
     }
 
     if (experienceLevel) {
-      journalistIdsQuery.andWhere('journalist.experienceLevel = :experienceLevel', { experienceLevel });
+      const expNorm = (experienceLevel || '').toString().trim().toLowerCase();
+      const expMap: Record<string, string> = {
+        junior: 'junior',
+        mid: 'mid_level',
+        mid_level: 'mid_level',
+        senior: 'senior',
+        expert: 'expert',
+      };
+      const experienceLevelForQuery = expMap[expNorm];
+      if (experienceLevelForQuery) {
+        journalistIdsQuery.andWhere('journalist.experienceLevel = :experienceLevel', { experienceLevel: experienceLevelForQuery });
+      }
     }
 
     if (analystSpecialty) {
