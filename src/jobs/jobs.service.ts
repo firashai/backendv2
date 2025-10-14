@@ -33,6 +33,7 @@ export class JobsService {
     // STEP 1: Build a lightweight query to select unique job IDs with filters applied
     const idsQuery = this.jobRepository.createQueryBuilder('job')
       .select('job.id', 'id')
+      .distinct(true)
       .leftJoin('job.jobMediaWorkTypes', 'jobMediaWorkType')
       .leftJoin('job.jobRequiredSkills', 'jobRequiredSkill')
       .leftJoin('job.jobRequiredLanguages', 'jobRequiredLanguage')
