@@ -209,16 +209,21 @@ export class JournalistsService {
       .distinct(true);
 
     if (countries && countries.length > 0) {
-      // When countries filter is present, enforce with INNER JOIN on country alias used in predicate
+      // Normalize country names for case/whitespace
+      const normalizedCountries = countries
+        .map(c => (typeof c === 'string' ? c.trim().toLowerCase() : c))
+        .filter(Boolean);
+
+      // Enforce with INNER JOIN and case-insensitive match
       journalistIdsQuery.innerJoin('user.country', 'country');
-      journalistIdsQuery.andWhere('country.name IN (:...countries)', { countries });
+      journalistIdsQuery.andWhere('LOWER(country.name) IN (:...normalizedCountries)', { normalizedCountries });
     } else {
       // No countries filter → allow all, but still provide alias for optional location LIKE
       journalistIdsQuery.leftJoin('user.country', 'country');
     }
 
     if (location) {
-      journalistIdsQuery.andWhere('country.name LIKE :location', { location: `%${location}%` });
+      journalistIdsQuery.andWhere('LOWER(country.name) LIKE :location', { location: `%${location.toLowerCase()}%` });
     }
 
     if (mediaWorkType) {
