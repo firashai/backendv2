@@ -288,7 +288,8 @@ export class JobsService {
       relations: [
         'job',
         'job.company',
-        'job.company.country',
+        'job.company.companyLocations',
+        'job.company.companyLocations.country',
         'journalist',
         'journalist.user',
         'journalist.user.country'
