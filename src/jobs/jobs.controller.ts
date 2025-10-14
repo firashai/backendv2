@@ -24,6 +24,33 @@ export class JobsController {
       skills: this.normalizeArrayParam(query.skills || query['skills[]']),
       languages: this.normalizeArrayParam(query.languages || query['languages[]'])
     };
+
+    // Support multi-select for media work types, locations, and job types
+    const mediaWorkTypes = this.normalizeArrayParam(
+      query.mediaWorkTypes || query['mediaWorkTypes[]'] || query['mediaWorkType[]']
+    );
+    const locations = this.normalizeArrayParam(
+      query.locations || query['locations[]']
+    );
+    const jobTypes = this.normalizeArrayParam(
+      query.jobTypes || query['jobTypes[]']
+    );
+
+    if (mediaWorkTypes && mediaWorkTypes.length > 0) {
+      // @ts-ignore augment search dto dynamically
+      (searchDto as any).mediaWorkTypes = mediaWorkTypes;
+    }
+
+    if (locations && locations.length > 0) {
+      // @ts-ignore
+      (searchDto as any).locations = locations;
+    }
+
+    if (jobTypes && jobTypes.length > 0) {
+      // @ts-ignore
+      (searchDto as any).jobTypes = jobTypes;
+    }
+
     return this.jobsService.findAll(searchDto);
   }
 

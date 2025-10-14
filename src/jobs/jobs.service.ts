@@ -45,7 +45,10 @@ export class JobsService {
         .andWhere('(country.name LIKE :location OR jobLocation.city LIKE :location)', { location: `%${searchDto.location}%` });
     }
 
-    if (searchDto?.mediaWorkType) {
+    if ((searchDto as any)?.mediaWorkTypes?.length) {
+      idsQuery.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType')
+        .andWhere('mediaWorkType.name IN (:...mediaWorkTypes)', { mediaWorkTypes: (searchDto as any).mediaWorkTypes });
+    } else if (searchDto?.mediaWorkType) {
       idsQuery.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType')
         .andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType: searchDto.mediaWorkType });
     }
@@ -69,6 +72,15 @@ export class JobsService {
     if (searchDto?.languages && searchDto.languages.length > 0) {
       idsQuery.leftJoin('jobRequiredLanguage.language', 'language')
         .andWhere('language.name IN (:...languages)', { languages: searchDto.languages });
+    }
+
+    if ((searchDto as any)?.locations?.length) {
+      idsQuery.leftJoin('jobLocation.country', 'country_multi')
+        .andWhere('country_multi.name IN (:...locs)', { locs: (searchDto as any).locations });
+    }
+
+    if ((searchDto as any)?.jobTypes?.length) {
+      idsQuery.andWhere('job.jobType IN (:...jobTypes)', { jobTypes: (searchDto as any).jobTypes });
     }
 
     idsQuery.orderBy('job.createdAt', 'DESC');
