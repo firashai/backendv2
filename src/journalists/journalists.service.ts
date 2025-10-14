@@ -36,9 +36,9 @@ export class JournalistsService {
         (Array.isArray(searchDto.countries) && searchDto.countries.length > 0) ||
         (typeof (searchDto as any).minHourlyRate === 'number' && (searchDto as any).minHourlyRate > 0) ||
         (typeof (searchDto as any).maxHourlyRate === 'number' && (searchDto as any).maxHourlyRate > 0) ||
-        (typeof (searchDto as any).hasCamera !== 'undefined') ||
-        (typeof (searchDto as any).hasAudioEquipment !== 'undefined') ||
-        (typeof (searchDto as any).canTravel !== 'undefined')
+        (typeof (searchDto as any).hasCamera !== 'undefined' && (searchDto as any).hasCamera === true) ||
+        (typeof (searchDto as any).hasAudioEquipment !== 'undefined' && (searchDto as any).hasAudioEquipment === true) ||
+        (typeof (searchDto as any).canTravel !== 'undefined' && (searchDto as any).canTravel === true)
       )
     ) {
       console.log('🔍 Using search method');

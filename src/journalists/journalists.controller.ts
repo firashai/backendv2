@@ -34,9 +34,9 @@ export class JournalistsController {
       countries: normalizeArrayParam(query.countries || query['countries[]'] || query.country || query['country[]']),
       minHourlyRate: query.minHourlyRate ? Number(query.minHourlyRate) : undefined,
       maxHourlyRate: query.maxHourlyRate ? Number(query.maxHourlyRate) : undefined,
-      hasCamera: query.hasCamera === 'true' || query.hasCamera === true,
-      hasAudioEquipment: query.hasAudioEquipment === 'true' || query.hasAudioEquipment === true,
-      canTravel: query.canTravel === 'true' || query.canTravel === true
+      hasCamera: typeof query.hasCamera !== 'undefined' ? (query.hasCamera === 'true' || query.hasCamera === true) : undefined,
+      hasAudioEquipment: typeof query.hasAudioEquipment !== 'undefined' ? (query.hasAudioEquipment === 'true' || query.hasAudioEquipment === true) : undefined,
+      canTravel: typeof query.canTravel !== 'undefined' ? (query.canTravel === 'true' || query.canTravel === true) : undefined
     } as any;
 
     return this.journalistsService.findAll(searchDto);
