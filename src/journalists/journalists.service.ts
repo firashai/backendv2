@@ -214,9 +214,12 @@ export class JournalistsService {
         .map(c => (typeof c === 'string' ? c.trim().toLowerCase() : c))
         .filter(Boolean);
 
-      // Enforce with INNER JOIN and case-insensitive match
+      // Enforce with INNER JOIN and subquery by ID to avoid any collation issues
       journalistIdsQuery.innerJoin('user.country', 'country');
-      journalistIdsQuery.andWhere('LOWER(country.name) IN (:...normalizedCountries)', { normalizedCountries });
+      journalistIdsQuery.andWhere(
+        'country.id IN (SELECT c.id FROM countries c WHERE LOWER(c.name) IN (:...names))',
+        { names: normalizedCountries }
+      );
     } else {
       // No countries filter → allow all, but still provide alias for optional location LIKE
       journalistIdsQuery.leftJoin('user.country', 'country');
