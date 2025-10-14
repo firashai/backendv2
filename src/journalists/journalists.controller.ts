@@ -33,7 +33,10 @@ export class JournalistsController {
       mediaWorkTypes: normalizeArrayParam(query.mediaWorkTypes || query['mediaWorkTypes[]'] || query.mediaWorkType || query['mediaWorkType[]']),
       countries: normalizeArrayParam(query.countries || query['countries[]'] || query.country || query['country[]']),
       minHourlyRate: query.minHourlyRate ? Number(query.minHourlyRate) : undefined,
-      maxHourlyRate: query.maxHourlyRate ? Number(query.maxHourlyRate) : undefined
+      maxHourlyRate: query.maxHourlyRate ? Number(query.maxHourlyRate) : undefined,
+      hasCamera: query.hasCamera === 'true' || query.hasCamera === true,
+      hasAudioEquipment: query.hasAudioEquipment === 'true' || query.hasAudioEquipment === true,
+      canTravel: query.canTravel === 'true' || query.canTravel === true
     } as any;
 
     return this.journalistsService.findAll(searchDto);

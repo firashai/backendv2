@@ -107,4 +107,9 @@ export class SearchJournalistDto {
   @Transform(({ value }) => parseInt(value))
   @IsNumber()
   maxHourlyRate?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  hasAudioEquipment?: boolean;
 }
