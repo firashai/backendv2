@@ -193,6 +193,9 @@ export class JournalistsService {
       offset = 0,
     } = searchDto;
 
+    console.log('🔍 Search called with searchDto:', JSON.stringify(searchDto, null, 2));
+    console.log('🌍 Countries filter:', countries);
+
     // First, get the journalist IDs with filters to avoid duplicate rows from joins
     const journalistIdsQuery = this.journalistRepository
       .createQueryBuilder('journalist')
@@ -214,6 +217,8 @@ export class JournalistsService {
         .map(c => (typeof c === 'string' ? c.trim().toLowerCase() : c))
         .filter(Boolean);
 
+      console.log('🌍 Applying countries filter:', normalizedCountries);
+
       // Enforce with INNER JOIN and subquery by ID to avoid any collation issues
       journalistIdsQuery.innerJoin('user.country', 'country');
       journalistIdsQuery.andWhere(
@@ -221,6 +226,7 @@ export class JournalistsService {
         { names: normalizedCountries }
       );
     } else {
+      console.log('🌍 No countries filter applied');
       // No countries filter → allow all, but still provide alias for optional location LIKE
       journalistIdsQuery.leftJoin('user.country', 'country');
     }
@@ -267,8 +273,8 @@ export class JournalistsService {
       .limit(limit)
       .offset(offset);
 
-    const journalistIds = await journalistIdsQuery.getMany();
-    console.log('🔍 Search found journalist IDs:', journalistIds.map(j => j.id));
+    const journalistIds = await journalistIdsQuery.getRawMany();
+    console.log('🔍 Search found journalist IDs:', journalistIds.map(r => r.journalist_id));
 
     if (journalistIds.length === 0) {
       console.log('🔍 No journalists found in search');
@@ -287,7 +293,7 @@ export class JournalistsService {
       .leftJoinAndSelect('journalistMediaWorkTypes.mediaWorkType', 'mediaWorkType')
       .leftJoinAndSelect('journalist.journalistLanguages', 'journalistLanguages')
       .leftJoinAndSelect('journalistLanguages.language', 'language')
-      .where('journalist.id IN (:...ids)', { ids: journalistIds.map(j => j.id) })
+      .where('journalist.id IN (:...ids)', { ids: journalistIds.map(r => r.journalist_id) })
       .orderBy('journalist.rating', 'DESC')
       .addOrderBy('journalist.completedProjects', 'DESC');
 
