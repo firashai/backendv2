@@ -33,7 +33,9 @@ export class JournalistsService {
         searchDto.skills ||
         searchDto.languages ||
         searchDto.skill ||
-        (Array.isArray(searchDto.countries) && searchDto.countries.length > 0)
+        (Array.isArray(searchDto.countries) && searchDto.countries.length > 0) ||
+        (typeof (searchDto as any).minHourlyRate === 'number' && (searchDto as any).minHourlyRate > 0) ||
+        (typeof (searchDto as any).maxHourlyRate === 'number' && (searchDto as any).maxHourlyRate > 0)
       )
     ) {
       console.log('🔍 Using search method');
