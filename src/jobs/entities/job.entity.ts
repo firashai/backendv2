@@ -206,6 +206,10 @@ export class Job {
   @JoinColumn({ name: 'companyId' })
   company: any;
 
+  @ManyToOne('User', 'postedJobs')
+  @JoinColumn({ name: 'postedByUserId' })
+  postedBy: any;
+
   @OneToMany('JobApplication', 'job')
   applications: any[];
 

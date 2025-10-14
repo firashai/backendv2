@@ -135,4 +135,7 @@ export class User {
 
   @OneToMany('MediaPurchase', 'seller')
   sales: any[];
+
+  @OneToMany('Job', 'postedBy')
+  postedJobs: any[];
 }

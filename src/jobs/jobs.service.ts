@@ -53,6 +53,7 @@ export class JobsService {
     const jobData: any = {
       ...createJobDto,
       company: user.company, // Associate with the company
+      postedBy: user, // Associate with the user who posted the job
     };
 
     // Handle salary object structure
@@ -218,6 +219,8 @@ export class JobsService {
       where: { id },
       relations: [
         'company', 
+        'postedBy',
+        'postedBy.country',
         'applications',
         'applications.journalist',
         'applications.journalist.user',
