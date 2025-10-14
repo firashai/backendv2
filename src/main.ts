@@ -89,6 +89,11 @@ import express from 'express';
 const server = express();
 
 async function bootstrap() {
+  // Set development mode if not already set
+  if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = 'development';
+  }
+  
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
     new ExpressAdapter(server),
@@ -97,8 +102,19 @@ async function bootstrap() {
   // Enable CORS with comprehensive configuration
   app.enableCors({
     origin: (origin, callback) => {
+      console.log('CORS request from origin:', origin);
+      
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        console.log('No origin provided, allowing request');
+        return callback(null, true);
+      }
+      
+      // For development, be more permissive
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode - allowing origin:', origin);
+        return callback(null, true);
+      }
       
       const allowedOrigins = [
         'https://wesourceyoub2.vercel.app',
@@ -109,17 +125,26 @@ async function bootstrap() {
         'http://127.0.0.1:3001',
         'http://localhost:3002',
         'http://127.0.0.1:3002',
+        'http://localhost:3003',
+        'http://127.0.0.1:3003',
+        'http://localhost:3004',
+        'http://127.0.0.1:3004',
+        'http://localhost:3005',
+        'http://127.0.0.1:3005',
       ];
       
       if (allowedOrigins.includes(origin)) {
+        console.log('Origin allowed:', origin);
         return callback(null, true);
       }
       
       // For development, allow any localhost origin
       if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        console.log('Localhost origin allowed:', origin);
         return callback(null, true);
       }
       
+      console.log('Origin not allowed:', origin);
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
@@ -157,6 +182,12 @@ async function bootstrap() {
         'http://127.0.0.1:3001',
         'http://localhost:3002',
         'http://127.0.0.1:3002',
+        'http://localhost:3003',
+        'http://127.0.0.1:3003',
+        'http://localhost:3004',
+        'http://127.0.0.1:3004',
+        'http://localhost:3005',
+        'http://127.0.0.1:3005',
       ];
       
       if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1'))) {
@@ -178,6 +209,17 @@ async function bootstrap() {
   // Add CORS headers to all responses
   app.use((req, res, next) => {
     const origin = req.headers.origin;
+    
+    // For development, be more permissive
+    if (process.env.NODE_ENV === 'development') {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin');
+      res.header('Access-Control-Expose-Headers', 'Authorization');
+      return next();
+    }
+    
     const allowedOrigins = [
       'https://wesourceyoub2.vercel.app',
       'https://wesourceyou-f.vercel.app',
@@ -187,6 +229,12 @@ async function bootstrap() {
       'http://127.0.0.1:3001',
       'http://localhost:3002',
       'http://127.0.0.1:3002',
+      'http://localhost:3003',
+      'http://127.0.0.1:3003',
+      'http://localhost:3004',
+      'http://127.0.0.1:3004',
+      'http://localhost:3005',
+      'http://127.0.0.1:3005',
     ];
     
     if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1'))) {
@@ -200,6 +248,17 @@ async function bootstrap() {
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin');
     res.header('Access-Control-Expose-Headers', 'Authorization');
     next();
+  });
+
+  // Add a simple CORS test endpoint
+  app.use('/cors-test', (req, res) => {
+    res.json({
+      message: 'CORS test successful',
+      origin: req.headers.origin,
+      method: req.method,
+      headers: req.headers,
+      timestamp: new Date().toISOString()
+    });
   });
 
   // Pipes & Middleware
@@ -230,6 +289,13 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.init();
+  
+  // Log CORS configuration
+  console.log('CORS Configuration:');
+  console.log('- Development mode:', process.env.NODE_ENV === 'development');
+  console.log('- Allowed origins for development: * (any origin)');
+  console.log('- Production origins: specific domains only');
+  
   return server;
 }
 
