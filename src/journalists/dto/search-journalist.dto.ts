@@ -97,4 +97,14 @@ export class SearchJournalistDto {
   @Transform(({ value }) => parseInt(value))
   @IsNumber()
   offset?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value))
+  @IsNumber()
+  minHourlyRate?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value))
+  @IsNumber()
+  maxHourlyRate?: number;
 }

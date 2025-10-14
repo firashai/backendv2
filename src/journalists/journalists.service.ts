@@ -201,6 +201,8 @@ export class JournalistsService {
       skill,
       skills,
       languages,
+      minHourlyRate,
+      maxHourlyRate,
       limit = 20,
       offset = 0,
     } = searchDto;
@@ -266,6 +268,18 @@ export class JournalistsService {
 
     if (canTravel !== undefined) {
       journalistIdsQuery.andWhere('journalist.canTravel = :canTravel', { canTravel });
+    }
+
+    // Hourly rate filters
+    if (minHourlyRate && maxHourlyRate) {
+      journalistIdsQuery.andWhere('journalist.hourlyRate BETWEEN :minRate AND :maxRate', {
+        minRate: minHourlyRate,
+        maxRate: maxHourlyRate,
+      });
+    } else if (minHourlyRate) {
+      journalistIdsQuery.andWhere('journalist.hourlyRate >= :minRate', { minRate: minHourlyRate });
+    } else if (maxHourlyRate) {
+      journalistIdsQuery.andWhere('journalist.hourlyRate <= :maxRate', { maxRate: maxHourlyRate });
     }
 
     // Handle both single skill and skills array
