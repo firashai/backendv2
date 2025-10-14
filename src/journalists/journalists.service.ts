@@ -28,6 +28,7 @@ export class JournalistsService {
       searchDto && (
         searchDto.location ||
         searchDto.mediaWorkType ||
+        (Array.isArray(searchDto.mediaWorkTypes) && searchDto.mediaWorkTypes.length > 0) ||
         searchDto.analystSpecialty ||
         searchDto.skills ||
         searchDto.languages ||
@@ -193,6 +194,7 @@ export class JournalistsService {
       location,
       countries,
       mediaWorkType,
+      mediaWorkTypes,
       analystSpecialty,
       hasCamera,
       canTravel,
@@ -245,8 +247,13 @@ export class JournalistsService {
       journalistIdsQuery.andWhere('LOWER(country.name) LIKE :location', { location: `%${location.toLowerCase()}%` });
     }
 
-    if (mediaWorkType) {
-      journalistIdsQuery.andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType });
+    // Handle both single mediaWorkType and mediaWorkTypes array
+    const workTypesToSearch = mediaWorkTypes && mediaWorkTypes.length > 0 ? mediaWorkTypes : (mediaWorkType ? [mediaWorkType] : []);
+    if (workTypesToSearch.length > 0) {
+      journalistIdsQuery.andWhere(
+        workTypesToSearch.map((_, idx) => `mediaWorkType.name = :workType${idx}`).join(' OR '),
+        Object.fromEntries(workTypesToSearch.map((wt, idx) => [`workType${idx}`, wt] as const))
+      );
     }
 
     if (analystSpecialty) {

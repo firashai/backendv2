@@ -30,6 +30,7 @@ export class JournalistsController {
       ...(query as any),
       skills: normalizeArrayParam(query.skills || query['skills[]']),
       languages: normalizeArrayParam(query.languages || query['languages[]']),
+      mediaWorkTypes: normalizeArrayParam(query.mediaWorkTypes || query['mediaWorkTypes[]'] || query.mediaWorkType || query['mediaWorkType[]']),
       countries: normalizeArrayParam(query.countries || query['countries[]'] || query.country || query['country[]'])
     } as any;
 
