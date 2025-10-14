@@ -93,6 +93,15 @@ export class CreateJobDto {
   @IsString()
   contactPhone?: string;
 
+  // Contact info object
+  @IsOptional()
+  contactInfo?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    preferredContact?: string;
+  };
+
   // Junction table fields
   @IsOptional()
   @IsArray()

@@ -66,11 +66,25 @@ export class JobsService {
       };
     }
 
+    // Handle contact info object structure
+    if (createJobDto.contactEmail || createJobDto.contactPhone || createJobDto.contactInfo) {
+      jobData.contactInfo = {
+        name: createJobDto.contactInfo?.name || '',
+        email: createJobDto.contactEmail || createJobDto.contactInfo?.email || '',
+        phone: createJobDto.contactPhone || createJobDto.contactInfo?.phone || '',
+        preferredContact: createJobDto.contactInfo?.preferredContact || 'email'
+      };
+    }
+
     // Remove the individual salary fields as they're now in the salary object
     delete jobData.salaryMin;
     delete jobData.salaryMax;
     delete jobData.salaryCurrency;
     delete jobData.salaryPeriod;
+
+    // Remove individual contact fields as they're now in the contactInfo object
+    delete jobData.contactEmail;
+    delete jobData.contactPhone;
 
     // Create the main job entity
     const job = this.jobRepository.create(jobData);
