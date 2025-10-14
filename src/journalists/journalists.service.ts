@@ -197,7 +197,6 @@ export class JournalistsService {
     const journalistIdsQuery = this.journalistRepository
       .createQueryBuilder('journalist')
       .leftJoin('journalist.user', 'user')
-      .leftJoin('user.country', 'country')
       .leftJoin('journalist.journalistSkills', 'journalistSkills')
       .leftJoin('journalistSkills.skill', 'skill')
       .leftJoin('journalist.journalistMediaWorkTypes', 'journalistMediaWorkTypes')
@@ -209,13 +208,17 @@ export class JournalistsService {
       .select('journalist.id')
       .distinct(true);
 
-    if (location) {
-      journalistIdsQuery.andWhere('country.name LIKE :location', { location: `%${location}%` });
+    if (countries && countries.length > 0) {
+      // When countries filter is present, enforce with INNER JOIN on country alias used in predicate
+      journalistIdsQuery.innerJoin('user.country', 'country');
+      journalistIdsQuery.andWhere('country.name IN (:...countries)', { countries });
+    } else {
+      // No countries filter → allow all, but still provide alias for optional location LIKE
+      journalistIdsQuery.leftJoin('user.country', 'country');
     }
 
-    if (countries && countries.length > 0) {
-      // Use INNER JOIN when filtering by countries to enforce the filter strictly
-      journalistIdsQuery.innerJoin('user.country', 'country_filter', 'country_filter.name IN (:...countries)', { countries });
+    if (location) {
+      journalistIdsQuery.andWhere('country.name LIKE :location', { location: `%${location}%` });
     }
 
     if (mediaWorkType) {
