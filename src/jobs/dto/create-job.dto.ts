@@ -77,5 +77,24 @@ export class CreateJobDto {
   @IsString()
   contactPhone?: string;
 
-  // Removed locations - now handled by junction tables
+  // Junction table fields
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  requiredSkills?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  requiredLanguages?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  mediaWorkTypes?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  locations?: string[];
 }

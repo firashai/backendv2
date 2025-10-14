@@ -4,6 +4,10 @@ import { Repository } from 'typeorm';
 
 import { Job } from './entities/job.entity';
 import { JobApplication } from './entities/job-application.entity';
+import { JobRequiredSkill } from './entities/job-required-skill.entity';
+import { JobRequiredLanguage } from './entities/job-required-language.entity';
+import { JobMediaWorkType } from './entities/job-media-work-type.entity';
+import { JobLocation } from './entities/job-location.entity';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { ApplyForJobDto } from './dto/apply-for-job.dto';
@@ -12,6 +16,10 @@ import { JobStatus, JobType } from './entities/job.entity';
 import { ApplicationStatus } from './entities/job-application.entity';
 import { User } from '../users/entities/user.entity';
 import { Journalist } from '../journalists/entities/journalist.entity';
+import { Skill } from '../journalists/entities/skill.entity';
+import { Language } from '../journalists/entities/language.entity';
+import { MediaWorkType } from '../journalists/entities/media-work-type.entity';
+import { Country } from '../users/entities/country.entity';
 
 @Injectable()
 export class JobsService {
@@ -22,11 +30,58 @@ export class JobsService {
     private readonly jobApplicationRepository: Repository<JobApplication>,
     @InjectRepository(Journalist)
     private readonly journalistRepository: Repository<Journalist>,
+    @InjectRepository(JobRequiredSkill)
+    private readonly jobRequiredSkillRepository: Repository<JobRequiredSkill>,
+    @InjectRepository(JobRequiredLanguage)
+    private readonly jobRequiredLanguageRepository: Repository<JobRequiredLanguage>,
+    @InjectRepository(JobMediaWorkType)
+    private readonly jobMediaWorkTypeRepository: Repository<JobMediaWorkType>,
+    @InjectRepository(JobLocation)
+    private readonly jobLocationRepository: Repository<JobLocation>,
+    @InjectRepository(Skill)
+    private readonly skillRepository: Repository<Skill>,
+    @InjectRepository(Language)
+    private readonly languageRepository: Repository<Language>,
+    @InjectRepository(MediaWorkType)
+    private readonly mediaWorkTypeRepository: Repository<MediaWorkType>,
+    @InjectRepository(Country)
+    private readonly countryRepository: Repository<Country>,
   ) {}
 
   async create(createJobDto: CreateJobDto, user: User): Promise<Job> {
-    const job = this.jobRepository.create(createJobDto);
-    return this.jobRepository.save(job);
+    // Create the main job entity
+    const job = this.jobRepository.create({
+      ...createJobDto,
+      company: { id: user.companyId }, // Associate with the company
+    });
+    
+    const savedJob = await this.jobRepository.save(job);
+    
+    // Handle junction table relationships if they exist in the DTO
+    const jobId = savedJob.id;
+    
+    // Handle required skills
+    if (createJobDto.requiredSkills && createJobDto.requiredSkills.length > 0) {
+      await this.handleJobRequiredSkills(jobId, createJobDto.requiredSkills);
+    }
+    
+    // Handle required languages
+    if (createJobDto.requiredLanguages && createJobDto.requiredLanguages.length > 0) {
+      await this.handleJobRequiredLanguages(jobId, createJobDto.requiredLanguages);
+    }
+    
+    // Handle media work types
+    if (createJobDto.mediaWorkTypes && createJobDto.mediaWorkTypes.length > 0) {
+      await this.handleJobMediaWorkTypes(jobId, createJobDto.mediaWorkTypes);
+    }
+    
+    // Handle locations
+    if (createJobDto.locations && createJobDto.locations.length > 0) {
+      await this.handleJobLocations(jobId, createJobDto.locations);
+    }
+    
+    // Return the job with all relations
+    return this.findOne(jobId);
   }
 
   async findAll(searchDto?: SearchJobDto): Promise<Job[]> {
@@ -373,5 +428,78 @@ export class JobsService {
       order: { createdAt: 'DESC' },
       take: 10,
     });
+  }
+
+  // Helper methods for handling junction table relationships
+  private async handleJobRequiredSkills(jobId: number, skillNames: string[]): Promise<void> {
+    for (const skillName of skillNames) {
+      // Find or create the skill
+      let skill = await this.skillRepository.findOne({ where: { name: skillName } });
+      if (!skill) {
+        skill = this.skillRepository.create({ name: skillName });
+        skill = await this.skillRepository.save(skill);
+      }
+      
+      // Create the junction table entry
+      const jobRequiredSkill = this.jobRequiredSkillRepository.create({
+        job: { id: jobId },
+        skill: skill
+      });
+      await this.jobRequiredSkillRepository.save(jobRequiredSkill);
+    }
+  }
+
+  private async handleJobRequiredLanguages(jobId: number, languageNames: string[]): Promise<void> {
+    for (const languageName of languageNames) {
+      // Find or create the language
+      let language = await this.languageRepository.findOne({ where: { name: languageName } });
+      if (!language) {
+        language = this.languageRepository.create({ name: languageName });
+        language = await this.languageRepository.save(language);
+      }
+      
+      // Create the junction table entry
+      const jobRequiredLanguage = this.jobRequiredLanguageRepository.create({
+        job: { id: jobId },
+        language: language
+      });
+      await this.jobRequiredLanguageRepository.save(jobRequiredLanguage);
+    }
+  }
+
+  private async handleJobMediaWorkTypes(jobId: number, mediaWorkTypeNames: string[]): Promise<void> {
+    for (const mediaWorkTypeName of mediaWorkTypeNames) {
+      // Find or create the media work type
+      let mediaWorkType = await this.mediaWorkTypeRepository.findOne({ where: { name: mediaWorkTypeName } });
+      if (!mediaWorkType) {
+        mediaWorkType = this.mediaWorkTypeRepository.create({ name: mediaWorkTypeName });
+        mediaWorkType = await this.mediaWorkTypeRepository.save(mediaWorkType);
+      }
+      
+      // Create the junction table entry
+      const jobMediaWorkType = this.jobMediaWorkTypeRepository.create({
+        job: { id: jobId },
+        mediaWorkType: mediaWorkType
+      });
+      await this.jobMediaWorkTypeRepository.save(jobMediaWorkType);
+    }
+  }
+
+  private async handleJobLocations(jobId: number, locationNames: string[]): Promise<void> {
+    for (const locationName of locationNames) {
+      // Find or create the country
+      let country = await this.countryRepository.findOne({ where: { name: locationName } });
+      if (!country) {
+        country = this.countryRepository.create({ name: locationName });
+        country = await this.countryRepository.save(country);
+      }
+      
+      // Create the junction table entry
+      const jobLocation = this.jobLocationRepository.create({
+        job: { id: jobId },
+        country: country
+      });
+      await this.jobLocationRepository.save(jobLocation);
+    }
   }
 }

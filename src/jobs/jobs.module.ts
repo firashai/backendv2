@@ -5,10 +5,32 @@ import { JobsService } from './jobs.service';
 import { JobsController } from './jobs.controller';
 import { Job } from './entities/job.entity';
 import { JobApplication } from './entities/job-application.entity';
+import { JobRequiredSkill } from './entities/job-required-skill.entity';
+import { JobRequiredLanguage } from './entities/job-required-language.entity';
+import { JobMediaWorkType } from './entities/job-media-work-type.entity';
+import { JobLocation } from './entities/job-location.entity';
 import { Journalist } from '../journalists/entities/journalist.entity';
+import { Skill } from '../journalists/entities/skill.entity';
+import { Language } from '../journalists/entities/language.entity';
+import { MediaWorkType } from '../journalists/entities/media-work-type.entity';
+import { Country } from '../users/entities/country.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, JobApplication, Journalist])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Job, 
+      JobApplication, 
+      JobRequiredSkill,
+      JobRequiredLanguage,
+      JobMediaWorkType,
+      JobLocation,
+      Journalist,
+      Skill,
+      Language,
+      MediaWorkType,
+      Country
+    ])
+  ],
   controllers: [JobsController],
   providers: [JobsService],
   exports: [JobsService],
