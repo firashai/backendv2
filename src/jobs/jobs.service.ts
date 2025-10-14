@@ -499,7 +499,12 @@ export class JobsService {
       // Find or create the language
       let language = await this.languageRepository.findOne({ where: { name: languageName } });
       if (!language) {
-        language = this.languageRepository.create({ name: languageName });
+        // Generate a simple code from the name (first 5 characters, uppercase)
+        const code = languageName.substring(0, 5).toUpperCase();
+        language = this.languageRepository.create({ 
+          name: languageName,
+          code: code
+        });
         language = await this.languageRepository.save(language);
       }
       
@@ -535,7 +540,12 @@ export class JobsService {
       // Find or create the country
       let country = await this.countryRepository.findOne({ where: { name: locationName } });
       if (!country) {
-        country = this.countryRepository.create({ name: locationName });
+        // Generate a simple code from the name (first 3 characters, uppercase)
+        const code = locationName.substring(0, 3).toUpperCase();
+        country = this.countryRepository.create({ 
+          name: locationName,
+          code: code
+        });
         country = await this.countryRepository.save(country);
       }
       
