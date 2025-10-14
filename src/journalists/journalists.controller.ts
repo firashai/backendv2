@@ -18,7 +18,21 @@ export class JournalistsController {
   }
 
   @Get()
-  findAll(@Query() searchDto: SearchJournalistDto) {
+  findAll(@Query() query: any) {
+    const normalizeArrayParam = (value: any): string[] | undefined => {
+      if (!value) return undefined;
+      if (Array.isArray(value)) return value as string[];
+      if (typeof value === 'string') return [value];
+      return undefined;
+    };
+
+    const searchDto: SearchJournalistDto = {
+      ...(query as any),
+      skills: normalizeArrayParam(query.skills || query['skills[]']),
+      languages: normalizeArrayParam(query.languages || query['languages[]']),
+      countries: normalizeArrayParam(query.countries || query['countries[]'])
+    } as any;
+
     return this.journalistsService.findAll(searchDto);
   }
 
