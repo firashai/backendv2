@@ -209,6 +209,7 @@ export class JournalistsService {
 
     console.log('🔍 Search called with searchDto:', JSON.stringify(searchDto, null, 2));
     console.log('🌍 Countries filter:', countries);
+    console.log('💰 Hourly rate filters - minHourlyRate:', minHourlyRate, 'maxHourlyRate:', maxHourlyRate);
 
     // First, get the journalist IDs with filters to avoid duplicate rows from joins
     const journalistIdsQuery = this.journalistRepository
@@ -270,16 +271,16 @@ export class JournalistsService {
       journalistIdsQuery.andWhere('journalist.canTravel = :canTravel', { canTravel });
     }
 
-    // Hourly rate filters
+    // Hourly rate filters - convert string to decimal for comparison
     if (minHourlyRate && maxHourlyRate) {
-      journalistIdsQuery.andWhere('journalist.hourlyRate BETWEEN :minRate AND :maxRate', {
+      journalistIdsQuery.andWhere('CAST(journalist.hourlyRate AS DECIMAL(10,2)) BETWEEN :minRate AND :maxRate', {
         minRate: minHourlyRate,
         maxRate: maxHourlyRate,
       });
     } else if (minHourlyRate) {
-      journalistIdsQuery.andWhere('journalist.hourlyRate >= :minRate', { minRate: minHourlyRate });
+      journalistIdsQuery.andWhere('CAST(journalist.hourlyRate AS DECIMAL(10,2)) >= :minRate', { minRate: minHourlyRate });
     } else if (maxHourlyRate) {
-      journalistIdsQuery.andWhere('journalist.hourlyRate <= :maxRate', { maxRate: maxHourlyRate });
+      journalistIdsQuery.andWhere('CAST(journalist.hourlyRate AS DECIMAL(10,2)) <= :maxRate', { maxRate: maxHourlyRate });
     }
 
     // Handle both single skill and skills array
