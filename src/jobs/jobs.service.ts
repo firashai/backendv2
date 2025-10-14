@@ -16,10 +16,10 @@ import { JobStatus, JobType } from './entities/job.entity';
 import { ApplicationStatus } from './entities/job-application.entity';
 import { User } from '../users/entities/user.entity';
 import { Journalist } from '../journalists/entities/journalist.entity';
-import { Skill } from '../journalists/entities/skill.entity';
-import { Language } from '../journalists/entities/language.entity';
-import { MediaWorkType } from '../journalists/entities/media-work-type.entity';
-import { Country } from '../users/entities/country.entity';
+import { Skill } from '../skills/entities/skill.entity';
+import { Language } from '../languages/entities/language.entity';
+import { MediaWorkType } from '../media-work-types/entities/media-work-type.entity';
+import { Country } from '../countries/entities/country.entity';
 
 @Injectable()
 export class JobsService {
@@ -52,7 +52,7 @@ export class JobsService {
     // Create the main job entity
     const job = this.jobRepository.create({
       ...createJobDto,
-      company: { id: user.companyId }, // Associate with the company
+      company: user.company, // Associate with the company
     });
     
     const savedJob = await this.jobRepository.save(job);

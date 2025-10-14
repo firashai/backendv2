@@ -10,10 +10,10 @@ import { JobRequiredLanguage } from './entities/job-required-language.entity';
 import { JobMediaWorkType } from './entities/job-media-work-type.entity';
 import { JobLocation } from './entities/job-location.entity';
 import { Journalist } from '../journalists/entities/journalist.entity';
-import { Skill } from '../journalists/entities/skill.entity';
-import { Language } from '../journalists/entities/language.entity';
-import { MediaWorkType } from '../journalists/entities/media-work-type.entity';
-import { Country } from '../users/entities/country.entity';
+import { Skill } from '../skills/entities/skill.entity';
+import { Language } from '../languages/entities/language.entity';
+import { MediaWorkType } from '../media-work-types/entities/media-work-type.entity';
+import { Country } from '../countries/entities/country.entity';
 
 @Module({
   imports: [
