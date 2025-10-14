@@ -282,6 +282,115 @@ export class JobsService {
     });
   }
 
+  async findSimilarJobs(jobId: number): Promise<Job[]> {
+    // First, get the current job with its relations
+    const currentJob = await this.jobRepository.findOne({
+      where: { id: jobId },
+      relations: [
+        'jobRequiredSkills',
+        'jobRequiredSkills.skill',
+        'jobMediaWorkTypes',
+        'jobMediaWorkTypes.mediaWorkType',
+        'jobRequiredLanguages',
+        'jobRequiredLanguages.language',
+        'jobLocations',
+        'jobLocations.country'
+      ],
+    });
+
+    if (!currentJob) {
+      return [];
+    }
+
+    // Extract similar criteria from the current job
+    const currentSkills = currentJob.jobRequiredSkills?.map(js => js.skill.name) || [];
+    const currentMediaWorkTypes = currentJob.jobMediaWorkTypes?.map(mwt => mwt.mediaWorkType.name) || [];
+    const currentLanguages = currentJob.jobRequiredLanguages?.map(rl => rl.language.name) || [];
+    const currentLocations = currentJob.jobLocations?.map(jl => jl.country.name) || [];
+    const currentExperienceLevel = currentJob.experienceLevel;
+    const currentJobType = currentJob.jobType;
+
+    // Build query to find similar jobs
+    const query = this.jobRepository.createQueryBuilder('job')
+      .leftJoinAndSelect('job.company', 'company')
+      .leftJoinAndSelect('job.postedBy', 'postedBy')
+      .leftJoinAndSelect('job.postedBy.country', 'postedByCountry')
+      .leftJoinAndSelect('job.jobRequiredSkills', 'jobRequiredSkill')
+      .leftJoinAndSelect('jobRequiredSkill.skill', 'skill')
+      .leftJoinAndSelect('job.jobMediaWorkTypes', 'jobMediaWorkType')
+      .leftJoinAndSelect('jobMediaWorkType.mediaWorkType', 'mediaWorkType')
+      .leftJoinAndSelect('job.jobRequiredLanguages', 'jobRequiredLanguage')
+      .leftJoinAndSelect('jobRequiredLanguage.language', 'language')
+      .leftJoinAndSelect('job.jobLocations', 'jobLocation')
+      .leftJoinAndSelect('jobLocation.country', 'country')
+      .where('job.id != :currentJobId', { currentJobId: jobId })
+      .andWhere('job.status = :status', { status: 'published' });
+
+    // Add similarity conditions
+    const similarityConditions = [];
+
+    // Similar skills
+    if (currentSkills.length > 0) {
+      similarityConditions.push(
+        `EXISTS (
+          SELECT 1 FROM job_required_skills jrs 
+          JOIN skills s ON jrs.skillId = s.id 
+          WHERE jrs.jobId = job.id 
+          AND s.name IN (:...currentSkills)
+        )`
+      );
+    }
+
+    // Similar media work types
+    if (currentMediaWorkTypes.length > 0) {
+      similarityConditions.push(
+        `EXISTS (
+          SELECT 1 FROM job_media_work_types jmwt 
+          JOIN media_work_types mwt ON jmwt.mediaWorkTypeId = mwt.id 
+          WHERE jmwt.jobId = job.id 
+          AND mwt.name IN (:...currentMediaWorkTypes)
+        )`
+      );
+    }
+
+    // Similar experience level
+    if (currentExperienceLevel) {
+      similarityConditions.push('job.experienceLevel = :currentExperienceLevel');
+    }
+
+    // Similar job type
+    if (currentJobType) {
+      similarityConditions.push('job.jobType = :currentJobType');
+    }
+
+    // Apply similarity conditions
+    if (similarityConditions.length > 0) {
+      query.andWhere(`(${similarityConditions.join(' OR ')})`);
+    }
+
+    // Set parameters
+    if (currentSkills.length > 0) {
+      query.setParameter('currentSkills', currentSkills);
+    }
+    if (currentMediaWorkTypes.length > 0) {
+      query.setParameter('currentMediaWorkTypes', currentMediaWorkTypes);
+    }
+    if (currentExperienceLevel) {
+      query.setParameter('currentExperienceLevel', currentExperienceLevel);
+    }
+    if (currentJobType) {
+      query.setParameter('currentJobType', currentJobType);
+    }
+
+    // Order by similarity (most recent first as a fallback)
+    query.orderBy('job.createdAt', 'DESC');
+
+    // Limit to 5 similar jobs
+    query.limit(5);
+
+    return query.getMany();
+  }
+
   async update(id: number, updateJobDto: UpdateJobDto, user: User): Promise<Job> {
     const job = await this.findOne(id);
     

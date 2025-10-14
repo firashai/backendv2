@@ -76,6 +76,11 @@ export class JobsController {
     return this.jobsService.findOne(+id);
   }
 
+  @Get(':id/similar')
+  findSimilarJobs(@Param('id') id: string) {
+    return this.jobsService.findSimilarJobs(+id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @Request() req) {
