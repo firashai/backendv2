@@ -24,7 +24,17 @@ export class JournalistsService {
   async findAll(searchDto?: SearchJournalistDto): Promise<Journalist[]> {
     console.log('🔍 findAll called with searchDto:', searchDto);
     
-    if (searchDto && (searchDto.location || searchDto.mediaWorkType || searchDto.analystSpecialty || searchDto.skills || searchDto.languages || searchDto.skill)) {
+    if (
+      searchDto && (
+        searchDto.location ||
+        searchDto.mediaWorkType ||
+        searchDto.analystSpecialty ||
+        searchDto.skills ||
+        searchDto.languages ||
+        searchDto.skill ||
+        (Array.isArray(searchDto.countries) && searchDto.countries.length > 0)
+      )
+    ) {
       console.log('🔍 Using search method');
       return this.search(searchDto);
     }
