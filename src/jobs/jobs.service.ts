@@ -50,7 +50,7 @@ export class JobsService {
 
   async create(createJobDto: CreateJobDto, user: User): Promise<Job> {
     // Prepare the job data with proper salary structure
-    const jobData = {
+    const jobData: any = {
       ...createJobDto,
       company: user.company, // Associate with the company
     };
@@ -78,7 +78,7 @@ export class JobsService {
     const savedJob = await this.jobRepository.save(job);
     
     // Handle junction table relationships if they exist in the DTO
-    const jobId = savedJob.id;
+    const jobId = Array.isArray(savedJob) ? (savedJob as Job[])[0].id : (savedJob as Job).id;
     
     // Handle required skills
     if (createJobDto.requiredSkills && createJobDto.requiredSkills.length > 0) {
