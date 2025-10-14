@@ -181,6 +181,7 @@ export class JournalistsService {
   async search(searchDto: SearchJournalistDto): Promise<Journalist[]> {
     const {
       location,
+      countries,
       mediaWorkType,
       analystSpecialty,
       hasCamera,
@@ -210,6 +211,10 @@ export class JournalistsService {
 
     if (location) {
       journalistIdsQuery.andWhere('country.name LIKE :location', { location: `%${location}%` });
+    }
+
+    if (countries && countries.length > 0) {
+      journalistIdsQuery.andWhere('country.name IN (:...countries)', { countries });
     }
 
     if (mediaWorkType) {

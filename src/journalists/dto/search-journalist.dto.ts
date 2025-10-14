@@ -7,6 +7,21 @@ export class SearchJournalistDto {
   location?: string;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      return value.split(',').map(v => v.trim()).filter(Boolean);
+    }
+    if (value && typeof value === 'object' && '0' in value) {
+      return Object.values(value as any);
+    }
+    return [];
+  })
+  @IsArray()
+  @IsString({ each: true })
+  countries?: string[];
+
+  @IsOptional()
   @IsString()
   mediaWorkType?: string;
 
