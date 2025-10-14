@@ -71,6 +71,11 @@ export class JobsController {
     return this.jobsService.findByUser(+userId);
   }
 
+  @Get('applications/user/:userId')
+  findApplicationsByUser(@Param('userId') userId: string) {
+    return this.jobsService.findApplicationsByUser(+userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.jobsService.findOne(+id);

@@ -282,6 +282,21 @@ export class JobsService {
     });
   }
 
+  async findApplicationsByUser(userId: number): Promise<JobApplication[]> {
+    return this.jobApplicationRepository.find({
+      where: { journalist: { user: { id: userId } } },
+      relations: [
+        'job',
+        'job.company',
+        'job.company.country',
+        'journalist',
+        'journalist.user',
+        'journalist.user.country'
+      ],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findSimilarJobs(jobId: number): Promise<Job[]> {
     // First, get the current job with its relations
     const currentJob = await this.jobRepository.findOne({
