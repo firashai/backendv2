@@ -105,6 +105,19 @@ export class CreateJobDto {
     preferredContact?: string;
   };
 
+  // Additional job fields
+  @IsOptional()
+  @IsString()
+  projectDetails?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isUrgent?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
+
   // Junction table fields
   @IsOptional()
   @IsArray()
