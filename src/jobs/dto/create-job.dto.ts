@@ -56,6 +56,14 @@ export class CreateJobDto {
   salaryMax?: number;
 
   @IsOptional()
+  @IsString()
+  salaryCurrency?: string;
+
+  @IsOptional()
+  @IsString()
+  salaryPeriod?: string;
+
+  @IsOptional()
   @ValidateNested()
   @Type(() => RequirementsDto)
   requirements?: RequirementsDto;
@@ -68,6 +76,14 @@ export class CreateJobDto {
   @IsOptional()
   @IsDate()
   applicationDeadline?: Date;
+
+  @IsOptional()
+  @IsDate()
+  startDate?: Date;
+
+  @IsOptional()
+  @IsDate()
+  endDate?: Date;
 
   @IsOptional()
   @IsString()

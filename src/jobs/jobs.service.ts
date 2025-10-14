@@ -49,11 +49,31 @@ export class JobsService {
   ) {}
 
   async create(createJobDto: CreateJobDto, user: User): Promise<Job> {
-    // Create the main job entity
-    const job = this.jobRepository.create({
+    // Prepare the job data with proper salary structure
+    const jobData = {
       ...createJobDto,
       company: user.company, // Associate with the company
-    });
+    };
+
+    // Handle salary object structure
+    if (createJobDto.salaryMin || createJobDto.salaryMax) {
+      jobData.salary = {
+        min: createJobDto.salaryMin || 0,
+        max: createJobDto.salaryMax || 0,
+        currency: createJobDto.salaryCurrency || 'USD',
+        period: createJobDto.salaryPeriod || 'monthly',
+        isNegotiable: false
+      };
+    }
+
+    // Remove the individual salary fields as they're now in the salary object
+    delete jobData.salaryMin;
+    delete jobData.salaryMax;
+    delete jobData.salaryCurrency;
+    delete jobData.salaryPeriod;
+
+    // Create the main job entity
+    const job = this.jobRepository.create(jobData);
     
     const savedJob = await this.jobRepository.save(job);
     
