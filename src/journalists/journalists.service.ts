@@ -35,7 +35,10 @@ export class JournalistsService {
         searchDto.skill ||
         (Array.isArray(searchDto.countries) && searchDto.countries.length > 0) ||
         (typeof (searchDto as any).minHourlyRate === 'number' && (searchDto as any).minHourlyRate > 0) ||
-        (typeof (searchDto as any).maxHourlyRate === 'number' && (searchDto as any).maxHourlyRate > 0)
+        (typeof (searchDto as any).maxHourlyRate === 'number' && (searchDto as any).maxHourlyRate > 0) ||
+        (typeof (searchDto as any).hasCamera !== 'undefined') ||
+        (typeof (searchDto as any).hasAudioEquipment !== 'undefined') ||
+        (typeof (searchDto as any).canTravel !== 'undefined')
       )
     ) {
       console.log('🔍 Using search method');
@@ -199,6 +202,7 @@ export class JournalistsService {
       mediaWorkTypes,
       analystSpecialty,
       hasCamera,
+      hasAudioEquipment,
       canTravel,
       skill,
       skills,
@@ -211,6 +215,7 @@ export class JournalistsService {
 
     console.log('🔍 Search called with searchDto:', JSON.stringify(searchDto, null, 2));
     console.log('🌍 Countries filter:', countries);
+    console.log('🎥 Equip flags - hasCamera:', hasCamera, 'hasAudioEquipment:', hasAudioEquipment, 'canTravel:', canTravel);
     console.log('💰 Hourly rate filters - minHourlyRate:', minHourlyRate, 'maxHourlyRate:', maxHourlyRate);
 
     // First, get the journalist IDs with filters to avoid duplicate rows from joins
@@ -267,6 +272,10 @@ export class JournalistsService {
 
     if (hasCamera !== undefined) {
       journalistIdsQuery.andWhere('journalist.hasCamera = :hasCamera', { hasCamera });
+    }
+
+    if (hasAudioEquipment !== undefined) {
+      journalistIdsQuery.andWhere('journalist.hasAudioEquipment = :hasAudioEquipment', { hasAudioEquipment });
     }
 
     if (canTravel !== undefined) {
