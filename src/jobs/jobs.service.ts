@@ -30,62 +30,74 @@ export class JobsService {
   }
 
   async findAll(searchDto?: SearchJobDto): Promise<Job[]> {
-    const queryBuilder = this.jobRepository.createQueryBuilder('job')
+    // STEP 1: Build a lightweight query to select unique job IDs with filters applied
+    const idsQuery = this.jobRepository.createQueryBuilder('job')
+      .select('job.id', 'id')
+      .leftJoin('job.jobMediaWorkTypes', 'jobMediaWorkType')
+      .leftJoin('job.jobRequiredSkills', 'jobRequiredSkill')
+      .leftJoin('job.jobRequiredLanguages', 'jobRequiredLanguage')
+      .leftJoin('job.jobLocations', 'jobLocation')
+      .where('job.status = :status', { status: JobStatus.PUBLISHED });
+
+    if (searchDto?.location) {
+      idsQuery.leftJoin('jobLocation.country', 'country')
+        .andWhere('(country.name LIKE :location OR jobLocation.city LIKE :location)', { location: `%${searchDto.location}%` });
+    }
+
+    if (searchDto?.mediaWorkType) {
+      idsQuery.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType')
+        .andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType: searchDto.mediaWorkType });
+    }
+
+    if (searchDto?.jobType) {
+      idsQuery.andWhere('job.jobType = :jobType', { jobType: searchDto.jobType });
+    }
+
+    if (searchDto?.analystSpecialty) {
+      if (!searchDto?.mediaWorkType) {
+        idsQuery.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType');
+      }
+      idsQuery.andWhere('mediaWorkType.name = :analystSpecialty', { analystSpecialty: searchDto.analystSpecialty });
+    }
+
+    if (searchDto?.skills && searchDto.skills.length > 0) {
+      idsQuery.leftJoin('jobRequiredSkill.skill', 'skill')
+        .andWhere('skill.name IN (:...skills)', { skills: searchDto.skills });
+    }
+
+    if (searchDto?.languages && searchDto.languages.length > 0) {
+      idsQuery.leftJoin('jobRequiredLanguage.language', 'language')
+        .andWhere('language.name IN (:...languages)', { languages: searchDto.languages });
+    }
+
+    idsQuery.orderBy('job.createdAt', 'DESC');
+
+    if (searchDto?.limit) {
+      idsQuery.limit(searchDto.limit);
+    }
+
+    if (searchDto?.offset) {
+      idsQuery.offset(searchDto.offset);
+    }
+
+    const rawIds = await idsQuery.getRawMany<{ id: number }>();
+    const jobIds = rawIds.map(r => r.id);
+
+    if (jobIds.length === 0) {
+      return [];
+    }
+
+    // STEP 2: Load full entities for the selected IDs with relations
+    const fullQuery = this.jobRepository.createQueryBuilder('job')
       .leftJoinAndSelect('job.company', 'company')
       .leftJoinAndSelect('job.jobMediaWorkTypes', 'jobMediaWorkType')
       .leftJoinAndSelect('job.jobRequiredSkills', 'jobRequiredSkill')
       .leftJoinAndSelect('job.jobRequiredLanguages', 'jobRequiredLanguage')
       .leftJoinAndSelect('job.jobLocations', 'jobLocation')
-      .where('job.status = :status', { status: JobStatus.PUBLISHED });
+      .where('job.id IN (:...ids)', { ids: jobIds })
+      .orderBy('job.createdAt', 'DESC');
 
-    // Apply filters from SearchJobDto using junction tables
-    if (searchDto?.location) {
-      // Join with countries table to filter by country name
-      queryBuilder.leftJoin('jobLocation.country', 'country')
-        .andWhere('(country.name LIKE :location OR jobLocation.city LIKE :location)', { 
-          location: `%${searchDto.location}%` 
-        });
-    }
-
-    if (searchDto?.mediaWorkType) {
-      // Join with media work types table to filter by name
-      queryBuilder.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType')
-        .andWhere('mediaWorkType.name = :mediaWorkType', { mediaWorkType: searchDto.mediaWorkType });
-    }
-
-    if (searchDto?.jobType) {
-      queryBuilder.andWhere('job.jobType = :jobType', { jobType: searchDto.jobType });
-    }
-
-    if (searchDto?.analystSpecialty) {
-      // Use the same join alias to avoid conflicts
-      if (!searchDto?.mediaWorkType) {
-        queryBuilder.leftJoin('jobMediaWorkType.mediaWorkType', 'mediaWorkType');
-      }
-      queryBuilder.andWhere('mediaWorkType.name = :analystSpecialty', { analystSpecialty: searchDto.analystSpecialty });
-    }
-
-    if (searchDto?.skills && searchDto.skills.length > 0) {
-      queryBuilder.leftJoin('jobRequiredSkill.skill', 'skill')
-        .andWhere('skill.name IN (:...skills)', { skills: searchDto.skills });
-    }
-
-    if (searchDto?.languages && searchDto.languages.length > 0) {
-      queryBuilder.leftJoin('jobRequiredLanguage.language', 'language')
-        .andWhere('language.name IN (:...languages)', { languages: searchDto.languages });
-    }
-
-    queryBuilder.orderBy('job.createdAt', 'DESC');
-
-    if (searchDto?.limit) {
-      queryBuilder.limit(searchDto.limit);
-    }
-
-    if (searchDto?.offset) {
-      queryBuilder.offset(searchDto.offset);
-    }
-
-    return queryBuilder.getMany();
+    return fullQuery.getMany();
   }
 
   async findOne(id: number): Promise<Job> {
