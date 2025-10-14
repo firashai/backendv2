@@ -214,7 +214,8 @@ export class JournalistsService {
     }
 
     if (countries && countries.length > 0) {
-      journalistIdsQuery.andWhere('country.name IN (:...countries)', { countries });
+      // Use INNER JOIN when filtering by countries to enforce the filter strictly
+      journalistIdsQuery.innerJoin('user.country', 'country_filter', 'country_filter.name IN (:...countries)', { countries });
     }
 
     if (mediaWorkType) {
