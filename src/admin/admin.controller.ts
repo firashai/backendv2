@@ -333,11 +333,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Get all skills for lookup management' })
   @ApiResponse({ status: 200, description: 'Skills retrieved successfully' })
   async getSkills(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 50,
+    @Query('page') page: any = 1,
+    @Query('limit') limit: any = 50,
     @Query('search') search?: string,
   ) {
-    return await this.adminService.getSkills(page, limit, search);
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    return await this.adminService.getSkills(pageNum, limitNum, search);
   }
 
   @Post('lookup/skills')
@@ -365,11 +367,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Get all countries for lookup management' })
   @ApiResponse({ status: 200, description: 'Countries retrieved successfully' })
   async getCountries(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 50,
+    @Query('page') page: any = 1,
+    @Query('limit') limit: any = 50,
     @Query('search') search?: string,
   ) {
-    return await this.adminService.getCountries(page, limit, search);
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    return await this.adminService.getCountries(pageNum, limitNum, search);
   }
 
   @Post('lookup/countries')
@@ -397,11 +401,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Get all languages for lookup management' })
   @ApiResponse({ status: 200, description: 'Languages retrieved successfully' })
   async getLanguages(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 50,
+    @Query('page') page: any = 1,
+    @Query('limit') limit: any = 50,
     @Query('search') search?: string,
   ) {
-    return await this.adminService.getLanguages(page, limit, search);
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    return await this.adminService.getLanguages(pageNum, limitNum, search);
   }
 
   @Post('lookup/languages')
@@ -461,11 +467,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Get all media work types for lookup management' })
   @ApiResponse({ status: 200, description: 'Media work types retrieved successfully' })
   async getMediaWorkTypes(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 50,
+    @Query('page') page: any = 1,
+    @Query('limit') limit: any = 50,
     @Query('search') search?: string,
   ) {
-    return await this.adminService.getMediaWorkTypes(page, limit, search);
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    return await this.adminService.getMediaWorkTypes(pageNum, limitNum, search);
   }
 
   @Post('lookup/media-work-types')
