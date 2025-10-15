@@ -919,9 +919,13 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       query.andWhere('(skill.name LIKE :search OR skill.description LIKE :search)', { search: `%${search}%` });
     }
 
+    // Convert to numbers to avoid TypeORM errors
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+
     const [skills, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum)
       .orderBy('skill.name', 'ASC')
       .getManyAndCount();
 
@@ -955,9 +959,13 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       query.andWhere('(country.name LIKE :search OR country.code LIKE :search)', { search: `%${search}%` });
     }
 
+    // Convert to numbers to avoid TypeORM errors
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+
     const [countries, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum)
       .orderBy('country.name', 'ASC')
       .getManyAndCount();
 
@@ -991,9 +999,13 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       query.andWhere('(language.name LIKE :search OR language.code LIKE :search OR language.nativeName LIKE :search)', { search: `%${search}%` });
     }
 
+    // Convert to numbers to avoid TypeORM errors
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+
     const [languages, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum)
       .orderBy('language.name', 'ASC')
       .getManyAndCount();
 
@@ -1063,9 +1075,13 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       query.andWhere('(mediaWorkType.name LIKE :search OR mediaWorkType.description LIKE :search)', { search: `%${search}%` });
     }
 
+    // Convert to numbers to avoid TypeORM errors
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+
     const [mediaWorkTypes, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum)
       .orderBy('mediaWorkType.name', 'ASC')
       .getManyAndCount();
 
