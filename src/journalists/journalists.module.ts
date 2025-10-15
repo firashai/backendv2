@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JournalistsService } from './journalists.service';
 import { JournalistsController } from './journalists.controller';
 import { Journalist } from './entities/journalist.entity';
+import { Country } from '../countries/entities/country.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Journalist])],
+  imports: [TypeOrmModule.forFeature([Journalist, Country])],
   controllers: [JournalistsController],
   providers: [JournalistsService],
   exports: [JournalistsService],

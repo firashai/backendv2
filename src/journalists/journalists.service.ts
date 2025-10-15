@@ -8,12 +8,15 @@ import { UpdateJournalistDto } from './dto/update-journalist.dto';
 import { SearchJournalistDto } from './dto/search-journalist.dto';
 import { AnalystSpecialty } from './entities/journalist.entity';
 import { User } from '../users/entities/user.entity';
+import { Country } from '../countries/entities/country.entity';
 
 @Injectable()
 export class JournalistsService {
   constructor(
     @InjectRepository(Journalist)
     private readonly journalistRepository: Repository<Journalist>,
+    @InjectRepository(Country)
+    private readonly countryRepository: Repository<Country>,
   ) {}
 
   async create(createJournalistDto: CreateJournalistDto): Promise<Journalist> {
