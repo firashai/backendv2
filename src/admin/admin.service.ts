@@ -6,8 +6,14 @@ import { Journalist, ExperienceLevel } from '../journalists/entities/journalist.
 import { Company } from '../companies/entities/company.entity';
 import { Job, JobStatus } from '../jobs/entities/job.entity';
 import { MediaContent, MediaStatus } from '../media-content/entities/media-content.entity';
-import { JobApplication } from '../jobs/entities/job-application.entity';
+import { JobApplication, ApplicationStatus } from '../jobs/entities/job-application.entity';
 import { MediaPurchase } from '../media-content/entities/media-purchase.entity';
+import { Skill } from '../skills/entities/skill.entity';
+import { Country } from '../countries/entities/country.entity';
+import { Language } from '../languages/entities/language.entity';
+import { AnalystSpecialty } from '../analyst-specialty/entities/analyst-specialty.entity';
+import { MediaWorkType } from '../media-work-types/entities/media-work-type.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AdminService {
@@ -26,6 +32,16 @@ export class AdminService {
     private jobApplicationRepository: Repository<JobApplication>,
     @InjectRepository(MediaPurchase)
     private mediaPurchaseRepository: Repository<MediaPurchase>,
+    @InjectRepository(Skill)
+    private skillRepository: Repository<Skill>,
+    @InjectRepository(Country)
+    private countryRepository: Repository<Country>,
+    @InjectRepository(Language)
+    private languageRepository: Repository<Language>,
+    @InjectRepository(AnalystSpecialty)
+    private analystSpecialtyRepository: Repository<AnalystSpecialty>,
+    @InjectRepository(MediaWorkType)
+    private mediaWorkTypeRepository: Repository<MediaWorkType>,
   ) {}
 
   // Dashboard Statistics
@@ -674,13 +690,22 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
   }
 
   // Application Management
-  async getAllApplications(page = 1, limit = 10) {
-    const [applications, total] = await this.jobApplicationRepository
+  async getAllApplications(page = 1, limit = 10, status?: string, jobId?: number) {
+    const query = this.jobApplicationRepository
       .createQueryBuilder('application')
       .leftJoinAndSelect('application.job', 'job')
       .leftJoinAndSelect('application.journalist', 'journalist')
       .leftJoinAndSelect('journalist.user', 'user')
-      .leftJoinAndSelect('application.company', 'company')
+      .leftJoinAndSelect('application.company', 'company');
+
+    if (status) {
+      query.andWhere('application.status = :status', { status });
+    }
+    if (jobId) {
+      query.andWhere('application.job.id = :jobId', { jobId });
+    }
+
+    const [applications, total] = await query
       .skip((page - 1) * limit)
       .take(limit)
       .orderBy('application.createdAt', 'DESC')
@@ -693,6 +718,53 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async updateApplicationStatus(applicationId: number, status: string, adminId: number, notes?: string) {
+    const application = await this.jobApplicationRepository.findOne({ 
+      where: { id: applicationId },
+      relations: ['job', 'journalist']
+    });
+    
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    application.status = status as ApplicationStatus;
+    
+    if (status === ApplicationStatus.REJECTED) {
+      application.rejectedAt = new Date();
+      application.rejectedBy = adminId;
+      application.rejectionReason = notes;
+    } else if (status === ApplicationStatus.ACCEPTED) {
+      application.acceptedAt = new Date();
+      application.acceptedBy = adminId;
+      application.acceptanceNotes = notes;
+    }
+
+    return await this.jobApplicationRepository.save(application);
+  }
+
+  async bulkUpdateApplications(applicationIds: number[], status: string, adminId: number, notes?: string) {
+    const applications = await this.jobApplicationRepository.find({
+      where: { id: In(applicationIds) }
+    });
+    
+    for (const application of applications) {
+      application.status = status as ApplicationStatus;
+      
+      if (status === ApplicationStatus.REJECTED) {
+        application.rejectedAt = new Date();
+        application.rejectedBy = adminId;
+        application.rejectionReason = notes;
+      } else if (status === ApplicationStatus.ACCEPTED) {
+        application.acceptedAt = new Date();
+        application.acceptedBy = adminId;
+        application.acceptanceNotes = notes;
+      }
+    }
+
+    return await this.jobApplicationRepository.save(applications);
   }
 
   // Purchase Management
@@ -787,6 +859,356 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
     }
 
     return await this.mediaContentRepository.save(mediaContent);
+  }
+
+  // Lookup Tables Management
+  async getSkills(page = 1, limit = 50, search?: string) {
+    const query = this.skillRepository.createQueryBuilder('skill');
+    
+    if (search) {
+      query.andWhere('(skill.name LIKE :search OR skill.description LIKE :search)', { search: `%${search}%` });
+    }
+
+    const [skills, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('skill.name', 'ASC')
+      .getManyAndCount();
+
+    return {
+      skills,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async createSkill(createSkillDto: any) {
+    const skill = this.skillRepository.create(createSkillDto);
+    return await this.skillRepository.save(skill);
+  }
+
+  async updateSkill(id: number, updateSkillDto: any) {
+    await this.skillRepository.update(id, updateSkillDto);
+    return await this.skillRepository.findOne({ where: { id } });
+  }
+
+  async deleteSkill(id: number) {
+    await this.skillRepository.update(id, { isActive: false });
+  }
+
+  async getCountries(page = 1, limit = 50, search?: string) {
+    const query = this.countryRepository.createQueryBuilder('country');
+    
+    if (search) {
+      query.andWhere('(country.name LIKE :search OR country.code LIKE :search)', { search: `%${search}%` });
+    }
+
+    const [countries, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('country.name', 'ASC')
+      .getManyAndCount();
+
+    return {
+      countries,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async createCountry(createCountryDto: any) {
+    const country = this.countryRepository.create(createCountryDto);
+    return await this.countryRepository.save(country);
+  }
+
+  async updateCountry(id: number, updateCountryDto: any) {
+    await this.countryRepository.update(id, updateCountryDto);
+    return await this.countryRepository.findOne({ where: { id } });
+  }
+
+  async deleteCountry(id: number) {
+    await this.countryRepository.update(id, { isActive: false });
+  }
+
+  async getLanguages(page = 1, limit = 50, search?: string) {
+    const query = this.languageRepository.createQueryBuilder('language');
+    
+    if (search) {
+      query.andWhere('(language.name LIKE :search OR language.code LIKE :search OR language.nativeName LIKE :search)', { search: `%${search}%` });
+    }
+
+    const [languages, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('language.name', 'ASC')
+      .getManyAndCount();
+
+    return {
+      languages,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async createLanguage(createLanguageDto: any) {
+    const language = this.languageRepository.create(createLanguageDto);
+    return await this.languageRepository.save(language);
+  }
+
+  async updateLanguage(id: number, updateLanguageDto: any) {
+    await this.languageRepository.update(id, updateLanguageDto);
+    return await this.languageRepository.findOne({ where: { id } });
+  }
+
+  async deleteLanguage(id: number) {
+    await this.languageRepository.update(id, { isActive: false });
+  }
+
+  async getAnalystSpecialties(page = 1, limit = 50, search?: string) {
+    const query = this.analystSpecialtyRepository.createQueryBuilder('analystSpecialty');
+    
+    if (search) {
+      query.andWhere('(analystSpecialty.name LIKE :search OR analystSpecialty.description LIKE :search)', { search: `%${search}%` });
+    }
+
+    const [analystSpecialties, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('analystSpecialty.name', 'ASC')
+      .getManyAndCount();
+
+    return {
+      analystSpecialties,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async createAnalystSpecialty(createAnalystSpecialtyDto: any) {
+    const analystSpecialty = this.analystSpecialtyRepository.create(createAnalystSpecialtyDto);
+    return await this.analystSpecialtyRepository.save(analystSpecialty);
+  }
+
+  async updateAnalystSpecialty(id: number, updateAnalystSpecialtyDto: any) {
+    await this.analystSpecialtyRepository.update(id, updateAnalystSpecialtyDto);
+    return await this.analystSpecialtyRepository.findOne({ where: { id } });
+  }
+
+  async deleteAnalystSpecialty(id: number) {
+    await this.analystSpecialtyRepository.update(id, { isActive: false });
+  }
+
+  async getMediaWorkTypes(page = 1, limit = 50, search?: string) {
+    const query = this.mediaWorkTypeRepository.createQueryBuilder('mediaWorkType');
+    
+    if (search) {
+      query.andWhere('(mediaWorkType.name LIKE :search OR mediaWorkType.description LIKE :search)', { search: `%${search}%` });
+    }
+
+    const [mediaWorkTypes, total] = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('mediaWorkType.name', 'ASC')
+      .getManyAndCount();
+
+    return {
+      mediaWorkTypes,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async createMediaWorkType(createMediaWorkTypeDto: any) {
+    const mediaWorkType = this.mediaWorkTypeRepository.create(createMediaWorkTypeDto);
+    return await this.mediaWorkTypeRepository.save(mediaWorkType);
+  }
+
+  async updateMediaWorkType(id: number, updateMediaWorkTypeDto: any) {
+    await this.mediaWorkTypeRepository.update(id, updateMediaWorkTypeDto);
+    return await this.mediaWorkTypeRepository.findOne({ where: { id } });
+  }
+
+  async deleteMediaWorkType(id: number) {
+    await this.mediaWorkTypeRepository.update(id, { isActive: false });
+  }
+
+  // User Management - Password Reset
+  async resetUserPassword(userId: number, newPassword: string, adminId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.updatedAt = new Date();
+
+    return await this.userRepository.save(user);
+  }
+
+  // Enhanced Statistics
+  async getDetailedStatistics() {
+    const [
+      totalUsers,
+      activeUsers,
+      pendingUsers,
+      suspendedUsers,
+      totalJournalists,
+      approvedJournalists,
+      pendingJournalists,
+      totalCompanies,
+      verifiedCompanies,
+      pendingCompanies,
+      totalJobs,
+      publishedJobs,
+      draftJobs,
+      closedJobs,
+      totalApplications,
+      pendingApplications,
+      acceptedApplications,
+      rejectedApplications,
+      totalMedia,
+      approvedMedia,
+      pendingMedia,
+      totalPurchases,
+      revenue,
+    ] = await Promise.all([
+      this.userRepository.count(),
+      this.userRepository.count({ where: { status: UserStatus.ACTIVE } }),
+      this.userRepository.count({ where: { status: UserStatus.PENDING } }),
+      this.userRepository.count({ where: { status: UserStatus.SUSPENDED } }),
+      this.journalistRepository.count(),
+      this.journalistRepository.count({ where: { isApproved: true } }),
+      this.journalistRepository.count({ where: { isApproved: false } }),
+      this.companyRepository.count(),
+      this.companyRepository.count({ where: { isVerified: true } }),
+      this.companyRepository.count({ where: { isVerified: false } }),
+      this.jobRepository.count(),
+      this.jobRepository.count({ where: { status: JobStatus.PUBLISHED } }),
+      this.jobRepository.count({ where: { status: JobStatus.DRAFT } }),
+      this.jobRepository.count({ where: { status: JobStatus.CLOSED } }),
+      this.jobApplicationRepository.count(),
+      this.jobApplicationRepository.count({ where: { status: ApplicationStatus.PENDING } }),
+      this.jobApplicationRepository.count({ where: { status: ApplicationStatus.ACCEPTED } }),
+      this.jobApplicationRepository.count({ where: { status: ApplicationStatus.REJECTED } }),
+      this.mediaContentRepository.count(),
+      this.mediaContentRepository.count({ where: { isApproved: true } }),
+      this.mediaContentRepository.count({ where: { isApproved: false } }),
+      this.mediaPurchaseRepository.count(),
+      this.mediaPurchaseRepository
+        .createQueryBuilder('purchase')
+        .select('SUM(purchase.amount)', 'total')
+        .getRawOne(),
+    ]);
+
+    // Get monthly statistics for the last 12 months
+    const monthlyStats = await this.getMonthlyStatistics();
+
+    return {
+      users: {
+        total: totalUsers,
+        active: activeUsers,
+        pending: pendingUsers,
+        suspended: suspendedUsers,
+      },
+      journalists: {
+        total: totalJournalists,
+        approved: approvedJournalists,
+        pending: pendingJournalists,
+      },
+      companies: {
+        total: totalCompanies,
+        verified: verifiedCompanies,
+        pending: pendingCompanies,
+      },
+      jobs: {
+        total: totalJobs,
+        published: publishedJobs,
+        draft: draftJobs,
+        closed: closedJobs,
+      },
+      applications: {
+        total: totalApplications,
+        pending: pendingApplications,
+        accepted: acceptedApplications,
+        rejected: rejectedApplications,
+      },
+      media: {
+        total: totalMedia,
+        approved: approvedMedia,
+        pending: pendingMedia,
+      },
+      purchases: {
+        total: totalPurchases,
+        revenue: revenue?.total || 0,
+      },
+      monthly: monthlyStats,
+    };
+  }
+
+  private async getMonthlyStatistics() {
+    const months = [];
+    const currentDate = new Date();
+    
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - i + 1, 1);
+      
+      const [users, jobs, applications, purchases] = await Promise.all([
+        this.userRepository.count({
+          where: {
+            createdAt: {
+              $gte: date,
+              $lt: nextMonth,
+            } as any,
+          },
+        }),
+        this.jobRepository.count({
+          where: {
+            createdAt: {
+              $gte: date,
+              $lt: nextMonth,
+            } as any,
+          },
+        }),
+        this.jobApplicationRepository.count({
+          where: {
+            createdAt: {
+              $gte: date,
+              $lt: nextMonth,
+            } as any,
+          },
+        }),
+        this.mediaPurchaseRepository.count({
+          where: {
+            createdAt: {
+              $gte: date,
+              $lt: nextMonth,
+            } as any,
+          },
+        }),
+      ]);
+
+      months.push({
+        month: date.toISOString().substring(0, 7),
+        users,
+        jobs,
+        applications,
+        purchases,
+      });
+    }
+
+    return months;
   }
 }
 

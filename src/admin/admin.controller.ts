@@ -279,13 +279,42 @@ export class AdminController {
 
   // Application Management
   @Get('applications')
-  @ApiOperation({ summary: 'Get all job applications with pagination' })
+  @ApiOperation({ summary: 'Get all job applications with pagination and filters' })
   @ApiResponse({ status: 200, description: 'Applications retrieved successfully' })
   async getAllApplications(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('status') status?: string,
+    @Query('jobId') jobId?: number,
   ) {
-    return await this.adminService.getAllApplications(page, limit);
+    return await this.adminService.getAllApplications(page, limit, status, jobId);
+  }
+
+  @Put('applications/:id/status')
+  @ApiOperation({ summary: 'Update application status' })
+  @ApiResponse({ status: 200, description: 'Application status updated successfully' })
+  async updateApplicationStatus(
+    @Param('id') applicationId: number,
+    @Body('status') status: string,
+    @Request() req,
+    @Body('notes') notes?: string,
+  ) {
+    return await this.adminService.updateApplicationStatus(applicationId, status, req.user.id, notes);
+  }
+
+  @Post('applications/bulk-update')
+  @ApiOperation({ summary: 'Bulk update application statuses' })
+  @ApiResponse({ status: 200, description: 'Applications bulk update completed successfully' })
+  async bulkUpdateApplications(
+    @Body() body: { applicationIds: number[]; status: string; notes?: string },
+    @Request() req,
+  ) {
+    return await this.adminService.bulkUpdateApplications(
+      body.applicationIds,
+      body.status,
+      req.user.id,
+      body.notes,
+    );
   }
 
   // Purchase Management
@@ -297,6 +326,187 @@ export class AdminController {
     @Query('limit') limit: number = 10,
   ) {
     return await this.adminService.getAllPurchases(page, limit);
+  }
+
+  // Lookup Tables Management
+  @Get('lookup/skills')
+  @ApiOperation({ summary: 'Get all skills for lookup management' })
+  @ApiResponse({ status: 200, description: 'Skills retrieved successfully' })
+  async getSkills(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+    @Query('search') search?: string,
+  ) {
+    return await this.adminService.getSkills(page, limit, search);
+  }
+
+  @Post('lookup/skills')
+  @ApiOperation({ summary: 'Create a new skill' })
+  @ApiResponse({ status: 201, description: 'Skill created successfully' })
+  async createSkill(@Body() createSkillDto: any) {
+    return await this.adminService.createSkill(createSkillDto);
+  }
+
+  @Put('lookup/skills/:id')
+  @ApiOperation({ summary: 'Update a skill' })
+  @ApiResponse({ status: 200, description: 'Skill updated successfully' })
+  async updateSkill(@Param('id') id: number, @Body() updateSkillDto: any) {
+    return await this.adminService.updateSkill(id, updateSkillDto);
+  }
+
+  @Delete('lookup/skills/:id')
+  @ApiOperation({ summary: 'Delete a skill' })
+  @ApiResponse({ status: 200, description: 'Skill deleted successfully' })
+  async deleteSkill(@Param('id') id: number) {
+    return await this.adminService.deleteSkill(id);
+  }
+
+  @Get('lookup/countries')
+  @ApiOperation({ summary: 'Get all countries for lookup management' })
+  @ApiResponse({ status: 200, description: 'Countries retrieved successfully' })
+  async getCountries(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+    @Query('search') search?: string,
+  ) {
+    return await this.adminService.getCountries(page, limit, search);
+  }
+
+  @Post('lookup/countries')
+  @ApiOperation({ summary: 'Create a new country' })
+  @ApiResponse({ status: 201, description: 'Country created successfully' })
+  async createCountry(@Body() createCountryDto: any) {
+    return await this.adminService.createCountry(createCountryDto);
+  }
+
+  @Put('lookup/countries/:id')
+  @ApiOperation({ summary: 'Update a country' })
+  @ApiResponse({ status: 200, description: 'Country updated successfully' })
+  async updateCountry(@Param('id') id: number, @Body() updateCountryDto: any) {
+    return await this.adminService.updateCountry(id, updateCountryDto);
+  }
+
+  @Delete('lookup/countries/:id')
+  @ApiOperation({ summary: 'Delete a country' })
+  @ApiResponse({ status: 200, description: 'Country deleted successfully' })
+  async deleteCountry(@Param('id') id: number) {
+    return await this.adminService.deleteCountry(id);
+  }
+
+  @Get('lookup/languages')
+  @ApiOperation({ summary: 'Get all languages for lookup management' })
+  @ApiResponse({ status: 200, description: 'Languages retrieved successfully' })
+  async getLanguages(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+    @Query('search') search?: string,
+  ) {
+    return await this.adminService.getLanguages(page, limit, search);
+  }
+
+  @Post('lookup/languages')
+  @ApiOperation({ summary: 'Create a new language' })
+  @ApiResponse({ status: 201, description: 'Language created successfully' })
+  async createLanguage(@Body() createLanguageDto: any) {
+    return await this.adminService.createLanguage(createLanguageDto);
+  }
+
+  @Put('lookup/languages/:id')
+  @ApiOperation({ summary: 'Update a language' })
+  @ApiResponse({ status: 200, description: 'Language updated successfully' })
+  async updateLanguage(@Param('id') id: number, @Body() updateLanguageDto: any) {
+    return await this.adminService.updateLanguage(id, updateLanguageDto);
+  }
+
+  @Delete('lookup/languages/:id')
+  @ApiOperation({ summary: 'Delete a language' })
+  @ApiResponse({ status: 200, description: 'Language deleted successfully' })
+  async deleteLanguage(@Param('id') id: number) {
+    return await this.adminService.deleteLanguage(id);
+  }
+
+  @Get('lookup/analyst-specialties')
+  @ApiOperation({ summary: 'Get all analyst specialties for lookup management' })
+  @ApiResponse({ status: 200, description: 'Analyst specialties retrieved successfully' })
+  async getAnalystSpecialties(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+    @Query('search') search?: string,
+  ) {
+    return await this.adminService.getAnalystSpecialties(page, limit, search);
+  }
+
+  @Post('lookup/analyst-specialties')
+  @ApiOperation({ summary: 'Create a new analyst specialty' })
+  @ApiResponse({ status: 201, description: 'Analyst specialty created successfully' })
+  async createAnalystSpecialty(@Body() createAnalystSpecialtyDto: any) {
+    return await this.adminService.createAnalystSpecialty(createAnalystSpecialtyDto);
+  }
+
+  @Put('lookup/analyst-specialties/:id')
+  @ApiOperation({ summary: 'Update an analyst specialty' })
+  @ApiResponse({ status: 200, description: 'Analyst specialty updated successfully' })
+  async updateAnalystSpecialty(@Param('id') id: number, @Body() updateAnalystSpecialtyDto: any) {
+    return await this.adminService.updateAnalystSpecialty(id, updateAnalystSpecialtyDto);
+  }
+
+  @Delete('lookup/analyst-specialties/:id')
+  @ApiOperation({ summary: 'Delete an analyst specialty' })
+  @ApiResponse({ status: 200, description: 'Analyst specialty deleted successfully' })
+  async deleteAnalystSpecialty(@Param('id') id: number) {
+    return await this.adminService.deleteAnalystSpecialty(id);
+  }
+
+  @Get('lookup/media-work-types')
+  @ApiOperation({ summary: 'Get all media work types for lookup management' })
+  @ApiResponse({ status: 200, description: 'Media work types retrieved successfully' })
+  async getMediaWorkTypes(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 50,
+    @Query('search') search?: string,
+  ) {
+    return await this.adminService.getMediaWorkTypes(page, limit, search);
+  }
+
+  @Post('lookup/media-work-types')
+  @ApiOperation({ summary: 'Create a new media work type' })
+  @ApiResponse({ status: 201, description: 'Media work type created successfully' })
+  async createMediaWorkType(@Body() createMediaWorkTypeDto: any) {
+    return await this.adminService.createMediaWorkType(createMediaWorkTypeDto);
+  }
+
+  @Put('lookup/media-work-types/:id')
+  @ApiOperation({ summary: 'Update a media work type' })
+  @ApiResponse({ status: 200, description: 'Media work type updated successfully' })
+  async updateMediaWorkType(@Param('id') id: number, @Body() updateMediaWorkTypeDto: any) {
+    return await this.adminService.updateMediaWorkType(id, updateMediaWorkTypeDto);
+  }
+
+  @Delete('lookup/media-work-types/:id')
+  @ApiOperation({ summary: 'Delete a media work type' })
+  @ApiResponse({ status: 200, description: 'Media work type deleted successfully' })
+  async deleteMediaWorkType(@Param('id') id: number) {
+    return await this.adminService.deleteMediaWorkType(id);
+  }
+
+  // User Management - Password Reset
+  @Post('users/:id/reset-password')
+  @ApiOperation({ summary: 'Reset user password' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  async resetUserPassword(
+    @Param('id') userId: number,
+    @Body('newPassword') newPassword: string,
+    @Request() req,
+  ) {
+    return await this.adminService.resetUserPassword(userId, newPassword, req.user.id);
+  }
+
+  // Enhanced Statistics
+  @Get('statistics/detailed')
+  @ApiOperation({ summary: 'Get detailed statistics for dashboard' })
+  @ApiResponse({ status: 200, description: 'Detailed statistics retrieved successfully' })
+  async getDetailedStatistics() {
+    return await this.adminService.getDetailedStatistics();
   }
 }
 
