@@ -242,6 +242,7 @@ export class JournalistsService {
         .filter(Boolean);
 
       console.log('🌍 Applying countries filter:', normalizedCountries);
+      console.log('🌍 Original countries array:', countries);
 
       // Enforce with INNER JOIN and subquery by ID to avoid any collation issues
       journalistIdsQuery.innerJoin('user.country', 'country');
@@ -249,6 +250,10 @@ export class JournalistsService {
         'country.id IN (SELECT c.id FROM countries c WHERE LOWER(c.name) IN (:...names))',
         { names: normalizedCountries }
       );
+      
+      // Debug: Log the generated SQL query
+      console.log('🌍 Generated SQL query:', journalistIdsQuery.getSql());
+      console.log('🌍 Query parameters:', journalistIdsQuery.getParameters());
     } else {
       console.log('🌍 No countries filter applied');
       // No countries filter → allow all, but still provide alias for optional location LIKE
@@ -505,5 +510,32 @@ export class JournalistsService {
     }
     
     return transformed;
+  }
+
+  async debugCountriesAndJournalists() {
+    // Get all countries
+    const countries = await this.countryRepository.find();
+    
+    // Get journalists with their countries
+    const journalistsWithCountries = await this.journalistRepository
+      .createQueryBuilder('journalist')
+      .leftJoinAndSelect('journalist.user', 'user')
+      .leftJoinAndSelect('user.country', 'country')
+      .where('journalist.isAvailable = :isAvailable', { isAvailable: true })
+      .andWhere('user.status = :status', { status: 'active' })
+      .limit(10)
+      .getMany();
+
+    return {
+      countries: countries.map(c => ({ id: c.id, name: c.name, code: c.code })),
+      journalists: journalistsWithCountries.map(j => ({
+        id: j.id,
+        name: `${j.user.firstName} ${j.user.lastName}`,
+        country: j.user.country ? { id: j.user.country.id, name: j.user.country.name } : null
+      })),
+      totalCountries: countries.length,
+      totalJournalists: journalistsWithCountries.length,
+      journalistsWithCountries: journalistsWithCountries.filter(j => j.user.country).length
+    };
   }
 }

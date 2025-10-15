@@ -53,6 +53,11 @@ export class JournalistsController {
     return this.journalistsService.debugSimpleQuery();
   }
 
+  @Get('debug/countries')
+  async debugCountries() {
+    return this.journalistsService.debugCountriesAndJournalists();
+  }
+
   // Journalist-specific endpoints (must come before :id routes)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.JOURNALIST)
