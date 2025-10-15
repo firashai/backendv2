@@ -37,6 +37,19 @@ import { LanguagesModule } from './languages/languages.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true, // Temporarily enabled to create tables
         logging: configService.get('NODE_ENV') === 'development',
+        // Connection pool configuration to prevent "max_user_connections" error
+        extra: {
+          connectionLimit: 5, // Reduce connection pool size
+          acquireTimeout: 60000, // 60 seconds
+          timeout: 60000, // 60 seconds
+          reconnect: true,
+          charset: 'utf8mb4',
+        },
+        // Additional connection options
+        maxQueryExecutionTime: 10000, // 10 seconds
+        cache: {
+          duration: 30000, // 30 seconds
+        },
       }),
       inject: [ConfigService],
     }),
