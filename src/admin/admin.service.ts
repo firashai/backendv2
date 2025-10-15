@@ -611,7 +611,15 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       const query = this.jobRepository.createQueryBuilder('job')
         .leftJoinAndSelect('job.company', 'company')
         .leftJoinAndSelect('company.user', 'user')
-        .leftJoinAndSelect('job.postedBy', 'postedBy');
+        .leftJoinAndSelect('job.postedBy', 'postedBy')
+        .leftJoinAndSelect('job.jobRequiredSkills', 'jobRequiredSkills')
+        .leftJoinAndSelect('jobRequiredSkills.skill', 'skill')
+        .leftJoinAndSelect('job.jobRequiredLanguages', 'jobRequiredLanguages')
+        .leftJoinAndSelect('jobRequiredLanguages.language', 'language')
+        .leftJoinAndSelect('job.jobMediaWorkTypes', 'jobMediaWorkTypes')
+        .leftJoinAndSelect('jobMediaWorkTypes.mediaWorkType', 'mediaWorkType')
+        .leftJoinAndSelect('job.jobLocations', 'jobLocations')
+        .leftJoinAndSelect('jobLocations.country', 'country');
 
       if (approved !== undefined) {
         query.andWhere('job.isApproved = :approved', { approved });
