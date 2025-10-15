@@ -634,8 +634,9 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
           id: jobs[0].id,
           title: jobs[0].title,
           hasCompany: !!jobs[0].company,
-          companyId: jobs[0].companyId,
-          company: jobs[0].company
+          company: jobs[0].company,
+          hasPostedBy: !!jobs[0].postedBy,
+          postedBy: jobs[0].postedBy
         });
       }
 
