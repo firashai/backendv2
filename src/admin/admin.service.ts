@@ -604,9 +604,14 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       const totalJobsCount = await this.jobRepository.count();
       console.log('Total jobs in database:', totalJobsCount);
       
+      // Check companies
+      const totalCompaniesCount = await this.companyRepository.count();
+      console.log('Total companies in database:', totalCompaniesCount);
+      
       const query = this.jobRepository.createQueryBuilder('job')
         .leftJoinAndSelect('job.company', 'company')
-        .leftJoinAndSelect('company.user', 'user');
+        .leftJoinAndSelect('company.user', 'user')
+        .leftJoinAndSelect('job.postedBy', 'postedBy');
 
       if (approved !== undefined) {
         query.andWhere('job.isApproved = :approved', { approved });
@@ -622,6 +627,17 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
         .getManyAndCount();
 
       console.log('AdminService.getAllJobs result:', { jobsCount: jobs.length, total });
+      
+      // Debug job relations
+      if (jobs.length > 0) {
+        console.log('First job structure:', {
+          id: jobs[0].id,
+          title: jobs[0].title,
+          hasCompany: !!jobs[0].company,
+          companyId: jobs[0].companyId,
+          company: jobs[0].company
+        });
+      }
 
       return {
         jobs,
