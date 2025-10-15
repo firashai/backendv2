@@ -87,6 +87,10 @@ export class AdminService {
 
   // User Management
   async getAllUsers(page = 1, limit = 10, status?: UserStatus, role?: UserRole) {
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    
     const query = this.userRepository.createQueryBuilder('user')
       .leftJoinAndSelect('user.journalist', 'journalist')
       .leftJoinAndSelect('user.company', 'company');
@@ -99,17 +103,17 @@ export class AdminService {
     }
 
     const [users, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum)
       .orderBy('user.createdAt', 'DESC')
       .getManyAndCount();
 
     return {
       users,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 
@@ -590,7 +594,11 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
   // Job Management
   async getAllJobs(page = 1, limit = 10, approved?: boolean, status?: JobStatus) {
     try {
-      console.log('AdminService.getAllJobs called with:', { page, limit, approved, status });
+      // Ensure page and limit are numbers
+      const pageNum = Number(page) || 1;
+      const limitNum = Number(limit) || 10;
+      
+      console.log('AdminService.getAllJobs called with:', { page: pageNum, limit: limitNum, approved, status });
       
       // First, let's check if there are any jobs at all
       const totalJobsCount = await this.jobRepository.count();
@@ -608,8 +616,8 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       }
 
       const [jobs, total] = await query
-        .skip((page - 1) * limit)
-        .take(limit)
+        .skip((pageNum - 1) * limitNum)
+        .take(limitNum)
         .orderBy('job.createdAt', 'DESC')
         .getManyAndCount();
 
@@ -618,9 +626,9 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
       return {
         jobs,
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
       };
     } catch (error) {
       console.error('Error in AdminService.getAllJobs:', error);
@@ -704,6 +712,10 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
 
   // Application Management
   async getAllApplications(page = 1, limit = 10, status?: string, jobId?: number) {
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    
     const query = this.jobApplicationRepository
       .createQueryBuilder('application')
       .leftJoinAndSelect('application.job', 'job')
@@ -719,17 +731,17 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
     }
 
     const [applications, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((pageNum - 1) * limitNum)
+      .take(limitNum)
       .orderBy('application.createdAt', 'DESC')
       .getManyAndCount();
 
     return {
       applications,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
     };
   }
 
