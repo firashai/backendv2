@@ -589,30 +589,43 @@ async updateMediaContent(mediaId: number, updateData: any, adminId: number) {
 
   // Job Management
   async getAllJobs(page = 1, limit = 10, approved?: boolean, status?: JobStatus) {
-    const query = this.jobRepository.createQueryBuilder('job')
-      .leftJoinAndSelect('job.company', 'company')
-      .leftJoinAndSelect('company.user', 'user');
+    try {
+      console.log('AdminService.getAllJobs called with:', { page, limit, approved, status });
+      
+      // First, let's check if there are any jobs at all
+      const totalJobsCount = await this.jobRepository.count();
+      console.log('Total jobs in database:', totalJobsCount);
+      
+      const query = this.jobRepository.createQueryBuilder('job')
+        .leftJoinAndSelect('job.company', 'company')
+        .leftJoinAndSelect('company.user', 'user');
 
-    if (approved !== undefined) {
-      query.andWhere('job.isApproved = :approved', { approved });
+      if (approved !== undefined) {
+        query.andWhere('job.isApproved = :approved', { approved });
+      }
+      if (status) {
+        query.andWhere('job.status = :status', { status });
+      }
+
+      const [jobs, total] = await query
+        .skip((page - 1) * limit)
+        .take(limit)
+        .orderBy('job.createdAt', 'DESC')
+        .getManyAndCount();
+
+      console.log('AdminService.getAllJobs result:', { jobsCount: jobs.length, total });
+
+      return {
+        jobs,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      console.error('Error in AdminService.getAllJobs:', error);
+      throw error;
     }
-    if (status) {
-      query.andWhere('job.status = :status', { status });
-    }
-
-    const [jobs, total] = await query
-      .skip((page - 1) * limit)
-      .take(limit)
-      .orderBy('job.createdAt', 'DESC')
-      .getManyAndCount();
-
-    return {
-      jobs,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
   }
 
   async approveJob(jobId: number, approved: boolean, adminId: number, notes?: string) {
