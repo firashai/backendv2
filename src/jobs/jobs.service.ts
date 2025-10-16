@@ -429,7 +429,26 @@ export class JobsService {
   }
 
   async applyForJob(jobId: number, applyDto: ApplyForJobDto, user: User): Promise<JobApplication> {
-    const { coverLetter, resumeUrl, resumeFilename, resumeSize, portfolio, samples, proposedRate, availableStartDate, availability, answers, references, equipment, experience, education, notes } = applyDto;
+    const { 
+      coverLetter, 
+      resumeUrl, 
+      resumeFilename, 
+      resumeSize, 
+      portfolio, 
+      samples, 
+      proposedRate, 
+      proposedRateCurrency,
+      proposedRatePeriod,
+      availableStartDate, 
+      availability, 
+      answers, 
+      references, 
+      equipment, 
+      experience, 
+      education, 
+      notes,
+      additionalInfo
+    } = applyDto;
 
     const job = await this.findOne(jobId);
     
@@ -466,7 +485,9 @@ export class JobsService {
       portfolio,
       samples,
       proposedRate,
-      availableStartDate,
+      proposedRateCurrency,
+      proposedRatePeriod,
+      availableStartDate: availableStartDate ? new Date(availableStartDate) : undefined,
       availability,
       answers,
       references,
@@ -474,6 +495,7 @@ export class JobsService {
       experience,
       education,
       notes,
+      additionalInfo,
       status: ApplicationStatus.PENDING,
     });
 

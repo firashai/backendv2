@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsDate } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsDateString } from 'class-validator';
 
 export class ApplyForJobDto {
   @IsOptional()
@@ -30,8 +30,16 @@ export class ApplyForJobDto {
   proposedRate?: number;
 
   @IsOptional()
-  @IsDate()
-  availableStartDate?: Date;
+  @IsString()
+  proposedRateCurrency?: string;
+
+  @IsOptional()
+  @IsString()
+  proposedRatePeriod?: string;
+
+  @IsOptional()
+  @IsDateString()
+  availableStartDate?: string;
 
   @IsOptional()
   @IsString()
@@ -62,4 +70,8 @@ export class ApplyForJobDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsString()
+  additionalInfo?: string;
 }
