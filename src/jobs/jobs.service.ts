@@ -478,8 +478,11 @@ export class JobsService {
 
     const application = this.jobApplicationRepository.create({
       job,
+      jobId: job.id,
       journalist,
+      journalistId: journalist.id,
       company: job.company,
+      companyId: job.company.id,
       coverLetter,
       resumeUrl,
       resumeFilename,

@@ -101,6 +101,18 @@ export class JobApplication {
 
   @ApiProperty()
   @Column({ nullable: true })
+  jobId: number;
+
+  @ApiProperty()
+  @Column({ nullable: true })
+  journalistId: number;
+
+  @ApiProperty()
+  @Column({ nullable: true })
+  companyId: number;
+
+  @ApiProperty()
+  @Column({ nullable: true })
   analystSpecialtyId: number;
 
   @ApiProperty()
