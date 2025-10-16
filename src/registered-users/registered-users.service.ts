@@ -5,6 +5,12 @@ import { RegisteredUser } from './entities/registered-user.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Journalist, SocialMediaPlatform } from '../journalists/entities/journalist.entity';
 import { Company } from '../companies/entities/company.entity';
+import { Skill } from '../skills/entities/skill.entity';
+import { Language } from '../languages/entities/language.entity';
+import { MediaWorkType } from '../media-work-types/entities/media-work-type.entity';
+import { JournalistSkill } from '../journalists/entities/journalist-skill.entity';
+import { JournalistLanguage } from '../journalists/entities/journalist-language.entity';
+import { JournalistMediaWorkType } from '../journalists/entities/journalist-media-work-type.entity';
 import { CreateRegisteredUserDto } from './dto/create-registered-user.dto';
 import { UpdateRegisteredUserDto } from './dto/update-registered-user.dto';
 import { UpgradeProfileDto } from './dto/upgrade-profile.dto';
@@ -21,6 +27,18 @@ export class RegisteredUsersService {
     private journalistRepository: Repository<Journalist>,
     @InjectRepository(Company)
     private companyRepository: Repository<Company>,
+    @InjectRepository(Skill)
+    private skillRepository: Repository<Skill>,
+    @InjectRepository(Language)
+    private languageRepository: Repository<Language>,
+    @InjectRepository(MediaWorkType)
+    private mediaWorkTypeRepository: Repository<MediaWorkType>,
+    @InjectRepository(JournalistSkill)
+    private journalistSkillRepository: Repository<JournalistSkill>,
+    @InjectRepository(JournalistLanguage)
+    private journalistLanguageRepository: Repository<JournalistLanguage>,
+    @InjectRepository(JournalistMediaWorkType)
+    private journalistMediaWorkTypeRepository: Repository<JournalistMediaWorkType>,
   ) {}
 
   async create(createRegisteredUserDto: CreateRegisteredUserDto): Promise<RegisteredUser> {
@@ -118,11 +136,29 @@ export class RegisteredUsersService {
     const { upgradeType, ...profileData } = upgradeProfileDto;
 
     if (upgradeType === 'journalist') {
-      // Create journalist profile
+      // Create journalist profile with all available fields
       const journalist = this.journalistRepository.create({
-        bio: profileData.bio,
-        // Note: skills, languages, and other fields are now handled by junction tables
-        // These will need to be set up separately after the journalist is created
+        bio: profileData.bio || '',
+        // Equipment and capabilities
+        hasCamera: profileData.hasCamera || false,
+        cameraType: profileData.cameraType || '',
+        hasAudioEquipment: profileData.hasAudioEquipment || false,
+        audioEquipmentType: profileData.audioEquipmentType || '',
+        canTravel: profileData.canTravel || false,
+        // Rates
+        hourlyRate: profileData.hourlyRate ? parseFloat(profileData.hourlyRate) : null,
+        dailyRate: profileData.dailyRate ? parseFloat(profileData.dailyRate) : null,
+        projectRate: profileData.projectRate ? parseFloat(profileData.projectRate) : null,
+        // Performance metrics
+        totalProjects: profileData.totalProjects ? parseInt(profileData.totalProjects) : 0,
+        totalClients: profileData.totalClients ? parseInt(profileData.totalClients) : 0,
+        yearsExperience: profileData.yearsExperience ? parseInt(profileData.yearsExperience) : 0,
+        onTimeRate: profileData.onTimeRate ? parseInt(profileData.onTimeRate) : 0,
+        onBudgetRate: profileData.onBudgetRate ? parseInt(profileData.onBudgetRate) : 0,
+        acceptRate: profileData.acceptRate ? parseInt(profileData.accept) : 0,
+        repeatHireRate: profileData.repeatHireRate ? parseInt(profileData.repeatHireRate) : 0,
+        jobSuccessRate: profileData.jobSuccessRate ? parseInt(profileData.jobSuccessRate) : 0,
+        // Social media accounts
         socialMediaAccounts: profileData.socialMedia ? Object.entries(profileData.socialMedia)
           .filter(([key, value]) => value)
           .map(([platform, url]) => ({
@@ -134,7 +170,12 @@ export class RegisteredUsersService {
         user: user,
       });
 
-      await this.journalistRepository.save(journalist);
+      const savedJournalist = await this.journalistRepository.save(journalist);
+
+      // Handle junction table relationships
+      await this.handleJournalistSkills(savedJournalist.id, profileData.skills || []);
+      await this.handleJournalistLanguages(savedJournalist.id, profileData.languages || []);
+      await this.handleJournalistMediaWorkTypes(savedJournalist.id, profileData.mediaWorkTypes || []);
 
       // Update user role
       user.role = UserRole.JOURNALIST;
@@ -146,7 +187,7 @@ export class RegisteredUsersService {
           id: user.id,
           email: user.email,
           role: user.role,
-          profile: journalist,
+          profile: savedJournalist,
         },
       };
     } else if (upgradeType === 'company') {
@@ -207,5 +248,69 @@ export class RegisteredUsersService {
 
     Object.assign(registeredUser, stats);
     await this.registeredUserRepository.save(registeredUser);
+  }
+
+  // Helper methods for handling junction table relationships
+  private async handleJournalistSkills(journalistId: number, skillNames: string[]): Promise<void> {
+    if (!skillNames || skillNames.length === 0) return;
+
+    for (const skillName of skillNames) {
+      // Find or create the skill
+      let skill = await this.skillRepository.findOne({ where: { name: skillName } });
+      if (!skill) {
+        skill = this.skillRepository.create({ name: skillName });
+        skill = await this.skillRepository.save(skill);
+      }
+      
+      // Create the junction table entry
+      const journalistSkill = this.journalistSkillRepository.create({
+        journalist: { id: journalistId },
+        skill: skill,
+        proficiencyLevel: 'intermediate', // Default proficiency level
+        yearsOfExperience: 1 // Default experience
+      });
+      await this.journalistSkillRepository.save(journalistSkill);
+    }
+  }
+
+  private async handleJournalistLanguages(journalistId: number, languageNames: string[]): Promise<void> {
+    if (!languageNames || languageNames.length === 0) return;
+
+    for (const languageName of languageNames) {
+      // Find or create the language
+      let language = await this.languageRepository.findOne({ where: { name: languageName } });
+      if (!language) {
+        language = this.languageRepository.create({ name: languageName, code: languageName.substring(0, 2).toLowerCase() });
+        language = await this.languageRepository.save(language);
+      }
+      
+      // Create the junction table entry
+      const journalistLanguage = this.journalistLanguageRepository.create({
+        journalist: { id: journalistId },
+        language: language,
+        proficiencyLevel: 'intermediate' // Default proficiency level
+      });
+      await this.journalistLanguageRepository.save(journalistLanguage);
+    }
+  }
+
+  private async handleJournalistMediaWorkTypes(journalistId: number, mediaWorkTypeNames: string[]): Promise<void> {
+    if (!mediaWorkTypeNames || mediaWorkTypeNames.length === 0) return;
+
+    for (const mediaWorkTypeName of mediaWorkTypeNames) {
+      // Find or create the media work type
+      let mediaWorkType = await this.mediaWorkTypeRepository.findOne({ where: { name: mediaWorkTypeName } });
+      if (!mediaWorkType) {
+        mediaWorkType = this.mediaWorkTypeRepository.create({ name: mediaWorkTypeName });
+        mediaWorkType = await this.mediaWorkTypeRepository.save(mediaWorkType);
+      }
+      
+      // Create the junction table entry
+      const journalistMediaWorkType = this.journalistMediaWorkTypeRepository.create({
+        journalist: { id: journalistId },
+        mediaWorkType: mediaWorkType
+      });
+      await this.journalistMediaWorkTypeRepository.save(journalistMediaWorkType);
+    }
   }
 }
