@@ -528,8 +528,14 @@ export class JobsService {
       status: ApplicationStatus.PENDING,
     };
 
-    const application = this.jobApplicationRepository.create(applicationData);
-    const savedApplication = await this.jobApplicationRepository.save(application);
+    // Try using insert method instead of create/save
+    console.log('Inserting application data:', applicationData);
+    const insertResult = await this.jobApplicationRepository.insert(applicationData);
+    console.log('Insert result:', insertResult);
+    
+    const savedApplication = await this.jobApplicationRepository.findOne({
+      where: { id: insertResult.identifiers[0].id }
+    });
     
     console.log('Saved application:', {
       id: savedApplication.id,

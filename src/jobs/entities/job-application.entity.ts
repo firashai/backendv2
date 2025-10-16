@@ -163,18 +163,18 @@ export class JobApplication {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Relations
-  @ManyToOne('Job', 'applications')
-  @JoinColumn({ name: 'jobId' })
-  job: any;
+  // Relations - temporarily commented out to test direct column insertion
+  // @ManyToOne('Job', 'applications')
+  // @JoinColumn({ name: 'jobId' })
+  // job: any;
 
-  @ManyToOne('Journalist', 'jobApplications')
-  @JoinColumn({ name: 'journalistId' })
-  journalist: any;
+  // @ManyToOne('Journalist', 'jobApplications')
+  // @JoinColumn({ name: 'journalistId' })
+  // journalist: any;
 
-  @ManyToOne('Company', 'applications')
-  @JoinColumn({ name: 'companyId' })
-  company: any;
+  // @ManyToOne('Company', 'applications')
+  // @JoinColumn({ name: 'companyId' })
+  // company: any;
 
   @ManyToOne(() => MediaWorkType, mediaWorkType => mediaWorkType.jobApplications)
   @JoinColumn({ name: 'mediaWorkTypeId' })
