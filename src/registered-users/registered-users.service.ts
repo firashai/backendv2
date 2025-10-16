@@ -8,8 +8,8 @@ import { Company } from '../companies/entities/company.entity';
 import { Skill } from '../skills/entities/skill.entity';
 import { Language } from '../languages/entities/language.entity';
 import { MediaWorkType } from '../media-work-types/entities/media-work-type.entity';
-import { JournalistSkill } from '../journalists/entities/journalist-skill.entity';
-import { JournalistLanguage } from '../journalists/entities/journalist-language.entity';
+import { JournalistSkill, ProficiencyLevel } from '../journalists/entities/journalist-skill.entity';
+import { JournalistLanguage, LanguageProficiencyLevel } from '../journalists/entities/journalist-language.entity';
 import { JournalistMediaWorkType } from '../journalists/entities/journalist-media-work-type.entity';
 import { CreateRegisteredUserDto } from './dto/create-registered-user.dto';
 import { UpdateRegisteredUserDto } from './dto/update-registered-user.dto';
@@ -264,9 +264,9 @@ export class RegisteredUsersService {
       
       // Create the junction table entry
       const journalistSkill = this.journalistSkillRepository.create({
-        journalist: { id: journalistId },
-        skill: skill,
-        proficiencyLevel: 'intermediate', // Default proficiency level
+        journalistId: journalistId,
+        skillId: skill.id,
+        proficiencyLevel: ProficiencyLevel.INTERMEDIATE, // Default proficiency level
         yearsOfExperience: 1 // Default experience
       });
       await this.journalistSkillRepository.save(journalistSkill);
@@ -286,9 +286,9 @@ export class RegisteredUsersService {
       
       // Create the junction table entry
       const journalistLanguage = this.journalistLanguageRepository.create({
-        journalist: { id: journalistId },
-        language: language,
-        proficiencyLevel: 'intermediate' // Default proficiency level
+        journalistId: journalistId,
+        languageId: language.id,
+        proficiencyLevel: LanguageProficiencyLevel.INTERMEDIATE // Default proficiency level
       });
       await this.journalistLanguageRepository.save(journalistLanguage);
     }
@@ -307,8 +307,8 @@ export class RegisteredUsersService {
       
       // Create the junction table entry
       const journalistMediaWorkType = this.journalistMediaWorkTypeRepository.create({
-        journalist: { id: journalistId },
-        mediaWorkType: mediaWorkType
+        journalistId: journalistId,
+        mediaWorkTypeId: mediaWorkType.id
       });
       await this.journalistMediaWorkTypeRepository.save(journalistMediaWorkType);
     }
