@@ -454,6 +454,13 @@ export class JobsService {
 
     const job = await this.findOne(jobId);
     
+    console.log('Job data:', {
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      companyId: job.company?.id
+    });
+    
     if (job.status !== JobStatus.PUBLISHED) {
       throw new BadRequestException('Job is not available for applications');
     }
@@ -481,8 +488,8 @@ export class JobsService {
       jobId: job.id,
       journalist,
       journalistId: journalist.id,
-      company: job.company,
-      companyId: job.company.id,
+      company: job.company || null,
+      companyId: job.company?.id || null,
       coverLetter,
       resumeUrl,
       resumeFilename,

@@ -201,6 +201,10 @@ export class Job {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @ApiProperty()
+  @Column({ nullable: true })
+  companyId: number;
+
   // Relations
   @ManyToOne('Company', 'jobs')
   @JoinColumn({ name: 'companyId' })
