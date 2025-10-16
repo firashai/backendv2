@@ -448,7 +448,8 @@ export class JobsService {
       education, 
       notes,
       additionalInfo,
-      skills
+      skills,
+      mediaWorkTypeId
     } = applyDto;
 
     const job = await this.findOne(jobId);
@@ -498,6 +499,7 @@ export class JobsService {
       notes,
       additionalInfo,
       skills,
+      mediaWorkTypeId,
       status: ApplicationStatus.PENDING,
     });
 

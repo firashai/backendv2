@@ -78,4 +78,8 @@ export class ApplyForJobDto {
   @IsOptional()
   @IsString()
   skills?: string;
+
+  @IsOptional()
+  @IsNumber()
+  mediaWorkTypeId?: number;
 }
