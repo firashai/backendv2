@@ -153,15 +153,15 @@ export class JobApplication {
 
   // Relations
   @ManyToOne('Job', 'applications')
-  @JoinColumn()
+  @JoinColumn({ name: 'jobId' })
   job: any;
 
   @ManyToOne('Journalist', 'jobApplications')
-  @JoinColumn()
+  @JoinColumn({ name: 'journalistId' })
   journalist: any;
 
   @ManyToOne('Company', 'applications')
-  @JoinColumn()
+  @JoinColumn({ name: 'companyId' })
   company: any;
 
   @ManyToOne(() => MediaWorkType, mediaWorkType => mediaWorkType.jobApplications)
