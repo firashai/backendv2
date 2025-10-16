@@ -578,7 +578,6 @@ export class JobsService {
   ): Promise<JobApplication> {
     const application = await this.jobApplicationRepository.findOne({
       where: { id: applicationId },
-      relations: ['job', 'journalist'],
     });
 
     if (!application) {
