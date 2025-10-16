@@ -271,14 +271,32 @@ export class JobsService {
     });
   }
 
-  async findApplicationsByUser(userId: number): Promise<JobApplication[]> {
-    // Since we don't have relations, we'll need to join with journalists table
+  async findApplicationsByUser(userId: number): Promise<any[]> {
+    // Since we don't have relations, we'll need to join with journalists table and jobs table
     return this.jobApplicationRepository
       .createQueryBuilder('application')
       .leftJoin('journalists', 'journalist', 'application.journalistId = journalist.id')
+      .leftJoin('jobs', 'job', 'application.jobId = job.id')
+      .leftJoin('companies', 'company', 'job.companyId = company.id')
+      .leftJoin('countries', 'country', 'company.countryId = country.id')
+      .select([
+        'application.id',
+        'application.jobId',
+        'application.coverLetter',
+        'application.proposedRate',
+        'application.status',
+        'application.createdAt',
+        'job.id',
+        'job.title',
+        'job.jobType',
+        'company.id',
+        'company.name',
+        'country.id',
+        'country.name'
+      ])
       .where('journalist.userId = :userId', { userId })
       .orderBy('application.createdAt', 'DESC')
-      .getMany();
+      .getRawMany();
   }
 
   async findSimilarJobs(jobId: number): Promise<Job[]> {
