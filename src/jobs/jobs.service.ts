@@ -220,7 +220,6 @@ export class JobsService {
       relations: [
         'company', 
         'postedBy',
-        'applications',
         'jobRequiredSkills',
         'jobRequiredSkills.skill',
         'jobMediaWorkTypes',

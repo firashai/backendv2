@@ -205,6 +205,10 @@ export class Job {
   @Column({ nullable: true })
   companyId: number;
 
+  @ApiProperty()
+  @Column({ nullable: true })
+  postedByUserId: number;
+
   // Relations
   @ManyToOne('Company', 'jobs')
   @JoinColumn({ name: 'companyId' })
