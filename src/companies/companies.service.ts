@@ -121,13 +121,7 @@ export class CompaniesService {
   async getMyApplications(userId: number): Promise<JobApplication[]> {
     const company = await this.findByUserId(userId);
     return this.jobApplicationRepository.find({
-      where: { company: { id: company.id } },
-      relations: [
-        'job',
-        'journalist',
-        'journalist.user',
-        'company'
-      ],
+      where: { companyId: company.id },
       order: { createdAt: 'DESC' },
     });
   }
@@ -137,14 +131,8 @@ export class CompaniesService {
     const application = await this.jobApplicationRepository.findOne({
       where: { 
         id: applicationId,
-        company: { id: company.id } 
+        companyId: company.id 
       },
-      relations: [
-        'job',
-        'journalist',
-        'journalist.user',
-        'company'
-      ],
     });
 
     if (!application) {
