@@ -176,9 +176,8 @@ export class RegisteredUsersService {
       await this.handleJournalistLanguages(savedJournalist.id, profileData.languages || []);
       await this.handleJournalistMediaWorkTypes(savedJournalist.id, profileData.mediaWorkTypes || []);
 
-      // Update user role
-      user.role = UserRole.JOURNALIST;
-      await this.userRepository.save(user);
+              // Update user role only (avoid touching relations like postedJobs)
+              await this.userRepository.update(user.id, { role: UserRole.JOURNALIST });
 
       return {
         message: 'Profile upgraded to journalist successfully',
@@ -208,9 +207,8 @@ export class RegisteredUsersService {
 
       await this.companyRepository.save(company);
 
-      // Update user role
-      user.role = UserRole.COMPANY;
-      await this.userRepository.save(user);
+              // Update user role only (avoid touching relations like postedJobs)
+              await this.userRepository.update(user.id, { role: UserRole.COMPANY });
 
       return {
         message: 'Profile upgraded to company successfully',
