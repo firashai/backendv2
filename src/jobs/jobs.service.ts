@@ -469,6 +469,11 @@ export class JobsService {
     const journalist = await this.journalistRepository.findOne({
       where: { user: { id: user.id } },
     });
+    
+    console.log('Journalist data:', {
+      id: journalist.id,
+      userId: journalist.user?.id
+    });
 
     if (!journalist) {
       throw new BadRequestException('Only journalists can apply for jobs');
@@ -483,12 +488,16 @@ export class JobsService {
       throw new BadRequestException('You have already applied for this job');
     }
 
-    const application = this.jobApplicationRepository.create({
-      job,
+    console.log('Creating application with:', {
       jobId: job.id,
-      journalist,
       journalistId: journalist.id,
-      company: job.company || null,
+      companyId: job.company?.id || null
+    });
+    
+    // Create application with explicit foreign key values
+    const applicationData = {
+      jobId: job.id,
+      journalistId: journalist.id,
       companyId: job.company?.id || null,
       coverLetter,
       resumeUrl,
@@ -511,9 +520,17 @@ export class JobsService {
       skills,
       mediaWorkTypeId,
       status: ApplicationStatus.PENDING,
-    });
+    };
 
+    const application = this.jobApplicationRepository.create(applicationData);
     const savedApplication = await this.jobApplicationRepository.save(application);
+    
+    console.log('Saved application:', {
+      id: savedApplication.id,
+      jobId: savedApplication.jobId,
+      journalistId: savedApplication.journalistId,
+      companyId: savedApplication.companyId
+    });
 
     // Update job applications count
     job.applicationsCount += 1;
