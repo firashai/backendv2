@@ -122,7 +122,6 @@ export class RegisteredUsersService {
   async upgradeProfile(userId: number, upgradeProfileDto: UpgradeProfileDto): Promise<any> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['registeredUser'],
     });
 
     if (!user) {
