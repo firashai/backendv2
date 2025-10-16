@@ -461,6 +461,12 @@ export class JobsService {
       companyId: job.company?.id
     });
     
+    console.log('Job ID type and value:', {
+      jobId: job.id,
+      jobIdType: typeof job.id,
+      jobIdString: String(job.id)
+    });
+    
     if (job.status !== JobStatus.PUBLISHED) {
       throw new BadRequestException('Job is not available for applications');
     }
@@ -530,6 +536,18 @@ export class JobsService {
       jobId: savedApplication.jobId,
       journalistId: savedApplication.journalistId,
       companyId: savedApplication.companyId
+    });
+    
+    // Verify the saved application by querying it back
+    const verifyApplication = await this.jobApplicationRepository.findOne({
+      where: { id: savedApplication.id }
+    });
+    
+    console.log('Verified application from database:', {
+      id: verifyApplication?.id,
+      jobId: verifyApplication?.jobId,
+      journalistId: verifyApplication?.journalistId,
+      companyId: verifyApplication?.companyId
     });
 
     // Update job applications count
