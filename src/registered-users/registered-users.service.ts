@@ -153,11 +153,11 @@ export class RegisteredUsersService {
         totalProjects: profileData.totalProjects ? parseInt(profileData.totalProjects) : 0,
         totalClients: profileData.totalClients ? parseInt(profileData.totalClients) : 0,
         yearsExperience: profileData.yearsExperience ? parseInt(profileData.yearsExperience) : 0,
-        onTimeRate: profileData.onTimeRate ? parseInt(profileData.onTimeRate) : 0,
-        onBudgetRate: profileData.onBudgetRate ? parseInt(profileData.onBudgetRate) : 0,
-        acceptRate: profileData.acceptRate ? parseInt(profileData.accept) : 0,
-        repeatHireRate: profileData.repeatHireRate ? parseInt(profileData.repeatHireRate) : 0,
-        jobSuccessRate: profileData.jobSuccessRate ? parseInt(profileData.jobSuccessRate) : 0,
+        onTimeRate: profileData.onTimeRate || 0,
+        onBudgetRate: profileData.onBudgetRate || 0,
+        acceptRate: profileData.acceptRate || 0,
+        repeatHireRate: profileData.repeatHireRate || 0,
+        jobSuccessRate: profileData.jobSuccessRate || 0,
         // Social media accounts
         socialMediaAccounts: profileData.socialMedia ? Object.entries(profileData.socialMedia)
           .filter(([key, value]) => value)

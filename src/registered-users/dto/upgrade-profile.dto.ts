@@ -68,10 +68,6 @@ export class UpgradeProfileDto {
   @IsString()
   experience?: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  languages?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
