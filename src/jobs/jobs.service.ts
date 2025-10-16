@@ -220,7 +220,6 @@ export class JobsService {
       relations: [
         'company', 
         'postedBy',
-        'postedBy.country',
         'applications',
         'applications.journalist',
         'applications.journalist.user',
@@ -277,7 +276,7 @@ export class JobsService {
   async findByUser(userId: number): Promise<Job[]> {
     return this.jobRepository.find({
       where: { postedBy: { id: userId } },
-      relations: ['company', 'postedBy', 'postedBy.country', 'applications'],
+      relations: ['company', 'postedBy', 'applications'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -330,7 +329,6 @@ export class JobsService {
     const query = this.jobRepository.createQueryBuilder('job')
       .leftJoinAndSelect('job.company', 'company')
       .leftJoinAndSelect('job.postedBy', 'postedBy')
-      .leftJoinAndSelect('job.postedBy.country', 'postedByCountry')
       .leftJoinAndSelect('job.jobRequiredSkills', 'jobRequiredSkill')
       .leftJoinAndSelect('jobRequiredSkill.skill', 'skill')
       .leftJoinAndSelect('job.jobMediaWorkTypes', 'jobMediaWorkType')
