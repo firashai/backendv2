@@ -282,19 +282,13 @@ export class JobsService {
   }
 
   async findApplicationsByUser(userId: number): Promise<JobApplication[]> {
-    return this.jobApplicationRepository.find({
-      where: { journalist: { user: { id: userId } } },
-      relations: [
-        'job',
-        'job.company',
-        'job.company.companyLocations',
-        'job.company.companyLocations.country',
-        'journalist',
-        'journalist.user',
-        'journalist.user.country'
-      ],
-      order: { createdAt: 'DESC' },
-    });
+    // Since we don't have relations, we'll need to join with journalists table
+    return this.jobApplicationRepository
+      .createQueryBuilder('application')
+      .leftJoin('journalists', 'journalist', 'application.journalistId = journalist.id')
+      .where('journalist.userId = :userId', { userId })
+      .orderBy('application.createdAt', 'DESC')
+      .getMany();
   }
 
   async findSimilarJobs(jobId: number): Promise<Job[]> {
@@ -487,7 +481,7 @@ export class JobsService {
 
     // Check if already applied
     const existingApplication = await this.jobApplicationRepository.findOne({
-      where: { job: { id: jobId }, journalist: { id: journalist.id } },
+      where: { jobId: jobId, journalistId: journalist.id },
     });
 
     if (existingApplication) {
@@ -565,16 +559,14 @@ export class JobsService {
 
   async getApplicationsByJob(jobId: number): Promise<JobApplication[]> {
     return this.jobApplicationRepository.find({
-      where: { job: { id: jobId } },
-      relations: ['journalist', 'journalist.user'],
+      where: { jobId: jobId },
       order: { createdAt: 'DESC' },
     });
   }
 
   async getApplicationsByJournalist(journalistId: number): Promise<JobApplication[]> {
     return this.jobApplicationRepository.find({
-      where: { journalist: { id: journalistId } },
-      relations: ['job', 'job.company'],
+      where: { journalistId: journalistId },
       order: { createdAt: 'DESC' },
     });
   }
